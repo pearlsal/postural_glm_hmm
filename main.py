@@ -23,7 +23,7 @@ cell_index, tot_time = cells_selection_manual(data_continous_ratemaps, data_binn
 print(cell_index, tot_time)
 
 glmhmms_ista, process_neur, inputs_list, T_list, tot_masked_indices_list, path_plots_list, general_folder = \
-    data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_top_folder, predictors_name_list,
+    data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, predictors_name_list,
                    tot_time, cell_index)
 print(general_folder)
 
