@@ -1,0 +1,11 @@
+name: glmhmmbeta
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - pip==21.3.1
+  - python==3.9.5
+  - pip:
+    - matplotlib==3.3.4
+    - numpy
+    - scipy
