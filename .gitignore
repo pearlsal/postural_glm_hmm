@@ -3,5 +3,5 @@
 /results_folder/*
 
 # exception to the rule
-!/data/.gitkeep 
-!/results_folder/.gitkeep
+!/data/.gitkeep.txt
+!/results_folder/.gitkeep.txt
