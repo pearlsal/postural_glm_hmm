@@ -1,5 +1,5 @@
 # exclude everything
-data/*
+/data/*
 
 # exception to the rule
-!data/.gitkeep 
+!/data/.gitkeep 
