@@ -37,7 +37,7 @@ def inference_section(glmhmms_ista, process_neur, inputs_list, dict_param, path_
     return fit_ll_list, fit_ll_states_list, glmhmms_ista, time_states_comp
 
 
-def posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list):
+def posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list, path_info_dir):
     startclock = time.time()
     posterior_probs_list = []
     print(inputs_list[0][0].shape)
@@ -63,7 +63,7 @@ def posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list):
     print(dict_posterior)
 
     data_file_name = 'dict_posterior.pkl'
-    a_file = open(data_file_name, "wb")
+    a_file = open(path_info_dir + data_file_name, "wb")
     pickle.dump(dict_posterior, a_file)
     a_file.close()
 

@@ -209,8 +209,8 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
     name_upper_folder = f"KAV_s3_distal_1pred_{date}_run/"
     if not os.path.exists(path_top_folder + name_upper_folder):
         os.makedirs(path_top_folder + name_upper_folder)
-    general_folder = path_top_folder + name_upper_folder
-    print(general_folder)
+    plots_folder = path_top_folder + name_upper_folder
+    print(plots_folder)
 
     for k in range(dict_param['num_predicotrs']):
         # #take only the common (shared, redundant) indices##
@@ -262,8 +262,8 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
                               f"_numpredict={1}" + \
                               f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}" + \
                               f"_distal/"
-                if not os.path.exists(general_folder + "/" + name_folder):
-                    os.makedirs(general_folder + "/" + name_folder)
+                if not os.path.exists(plots_folder + "/" + name_folder):
+                    os.makedirs(plots_folder + "/" + name_folder)
 
                 text_content = f"Single predictor and neuron inference. Predictor selection." "\n" \
                                f"KAV_s3_states={dict_param['list_states'][i]}" \
@@ -275,10 +275,10 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
                                f"fraction of missing points={miss_points_ratio}"
                 # f"predictors={predictors_name_list}" "\n" f"cells={list_string_cells}" "\n"
 
-                with open(general_folder + name_folder + "description_parameters.txt", "w") as file:
+                with open(plots_folder + name_folder + "description_parameters.txt", "w") as file:
                     file.write(text_content)
 
-                path_to_plots = general_folder + name_folder  # save the folder for each inference for single plots
+                path_to_plots = plots_folder + name_folder  # save the folder for each inference for single plots
                 path_plots_list.append(path_to_plots)
 
                 test_glmhmm = ssm.HMM(dict_param['list_states'][i], dict_param['num_dimen'], 2,
@@ -295,11 +295,11 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
     dict_objects["tot_masked_indices_list"] = tot_masked_indices_list
 
     data_file_name = 'dict_objects.pkl'
-    a_file = open(data_file_name, "wb")
+    a_file = open(path_info_dir + data_file_name, "wb")
     pickle.dump(dict_objects, a_file)
     a_file.close()
 
-    return glmhmms_ista, process_neur, inputs_list, T_list, tot_masked_indices_list, path_plots_list, general_folder
+    return glmhmms_ista, process_neur, inputs_list, T_list, tot_masked_indices_list, path_plots_list, plots_folder
 
 # TODO: save the output above (data_structure()) in a json or... to feed in the second part of the inference (multi-predictor)
 

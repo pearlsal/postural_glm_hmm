@@ -1,6 +1,7 @@
 # exclude everything
 /data/*
 /results_folder/*
+/__pycache__/
 
 # exception to the rule
 !/data/.gitkeep.txt
