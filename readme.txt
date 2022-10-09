@@ -1,4 +1,4 @@
-The software is in its first beta version. 
+The code is in its first beta version. 
 
 This package is aimed at bridging the postural pipeline of the Whitlock group with a state space model (ssm-> https://github.com/lindermanlab/ssm ). 
 
