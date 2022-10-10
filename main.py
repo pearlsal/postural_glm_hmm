@@ -1,8 +1,5 @@
 # ####-----test to run the beta package-----#####
-from test_beta_package import inference_section, posterior_prob_process, log_like_evolution_per_states, \
-    posterior_prob_per_states_with_predictor, states_occupancies_computation
-from test_beta_package.loading_declaring_preprocessing import *
-from test_beta_package.post_inference_plots import *
+from test_beta_package import *
 
 data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir = \
     load_data("bruno_ready_for_ratemaps_or_GLM_processing_s3.pkl", "bruno_ready_for_GLMHMM_inference_s3.pkl",
@@ -39,7 +36,7 @@ print(posterior_probs_list)
 
 states_occupancies = states_occupancies_computation(path_analysis_dir, posterior_probs_list)
 
-# log_like_evolution_per_states(fit_ll_states_list, dict_param, plots_folder)
+log_like_evolution_per_states(fit_ll_states_list, dict_param, plots_folder)
 
 # posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_name_list, data_continous_ratemaps,
 #                                         tot_masked_indices_list, T_list, dict_param, plots_folder)
@@ -48,3 +45,6 @@ states_occupancies_histogram(path_info_dir, dict_param, states_occupancies=state
 
 transition_prob_matrix(plots_folder, dict_param, glmhmms_ista)
 
+inf_weight_dict = dict_transformed_inferred_weights(path_analysis_dir, dict_param, glmhmms_ista)
+
+weights_distribution_histogram(plots_folder, dict_param, inf_weight_dict)

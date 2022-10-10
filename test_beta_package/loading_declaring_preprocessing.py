@@ -39,24 +39,21 @@ def load_data(file_ratemaps, file_glm, path_data):  # after Jingyi pipeline proc
     with open(path_data + file_glm, 'rb') as handle:
         data_binned_glm = pickle.load(handle)
 
-    # top structure folder to include all outputs#
+    # structure folders to include all outputs#
     top_folder = f"results_folder"  # _predict={predictors_name_list[j]}
     if not os.path.exists("./" + top_folder):
         os.makedirs("./" + top_folder)
     path_top_folder = os.path.dirname(os.path.abspath("./" + top_folder)) + "/results_folder/"
-    print(f"top folder is {path_top_folder}")
 
     info_dir = f"info_dir/"
     if not os.path.exists(path_top_folder + info_dir):
         os.makedirs(path_top_folder + info_dir)
     path_info_dir = os.path.dirname(os.path.abspath(path_top_folder + info_dir)) + "/info_dir/"
-    print(f"absolute path is {path_info_dir}")
 
     analysis_dir = f"analysis_dir/"
     if not os.path.exists(path_top_folder + analysis_dir):
         os.makedirs(path_top_folder + analysis_dir)
     path_analysis_dir = os.path.dirname(os.path.abspath(path_top_folder + analysis_dir)) + "/analysis_dir/"
-    print(f"absolute path is {path_analysis_dir}")
 
     # TODO: procesed_data folder to store the various dictionary with objects and quantities
 
@@ -65,16 +62,10 @@ def load_data(file_ratemaps, file_glm, path_data):  # after Jingyi pipeline proc
 
     return data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir
 
-
-"""
-
-"""
-
-
 # TODO: save txt-csv with all information
-def get_data_information(data_continous_ratemaps, path_info_dir, data_binned_glm):  # finish!!!!  , data_binned_glm, path_top_folder
+def get_data_information(data_continous_ratemaps, path_info_dir, data_binned_glm):
     """
-    This function extract useful information of data and save them in a file.txt
+    This function extract useful information of data and save them in a pickle
     """
     predictors_name_list = list(data_continous_ratemaps['possiblecovariates'].keys())
 
@@ -121,14 +112,9 @@ def dict_parameters_hmm(path_info_dir, num_dimen, num_categ_obs, N_iters, tolera
     dict_param['transistion_type'] = transistion_type
     dict_param['optim_method'] = optim_method
 
-    # TODO: change to with open .....
     data_file_name = 'dictionary_parameters.pkl'
     with open(path_info_dir + data_file_name, "wb") as handle:
         pickle.dump(dict_param, handle)
-    # data_file_name = 'dictionary_parameters.pkl'
-    # a_file = open(path_info_dir + data_file_name, "wb")   # need to add /before the name?
-    # pickle.dump(dict_param, a_file)
-    # a_file.close()
 
     return dict_param
 
@@ -141,7 +127,6 @@ def cells_selection_random(data_continous_ratemaps, data_binned_glm, dict_param,
     cell_names_list = np.asarray(data_continous_ratemaps['cell_names'])
     # assert (num_indip_neu<len(cell_names_list))
     cells_to_infer = np.random.choice(cell_names_list, size=dict_param['num_indep_neurons'])
-    print(cells_to_infer)
     cells_index_rnd = []
     for i in range(len(cells_to_infer)):
         cells_index_rnd.append(np.where(cell_names_list == cells_to_infer[i])[0][0])
@@ -152,7 +137,6 @@ def cells_selection_random(data_continous_ratemaps, data_binned_glm, dict_param,
 
     with open(path_info_dir + "description_parameters.txt", "w") as file:
         file.write(text_content)
-
 
     return cells_index, tot_time
 
@@ -170,24 +154,15 @@ def cells_selection_manual(data_continous_ratemaps, data_binned_glm, csv_file_ce
     """
 
     cell_names_array = np.array(data_continous_ratemaps['cell_names'])
-
-    # with open(csv_file_cells) as fp:
-    #     reader = csv.reader(fp, delimiter=",", quotechar='"')
-    #     data_read = [row for row in reader]
-
     data_read = pd.read_csv(csv_file_cells)
-    print(f"the neurons from csv are {data_read.iloc[0]}")
     cells_index = []
     for i in range(dict_param['num_indep_neurons']):
         cells_index.append(np.where(cell_names_array == data_read.iloc[i,0])[0][0])
-        # if more than one probably == [0][0], if only one == [0]
-    print(cells_index)
+        # TODO: if error on the component [0], means the cells are not matching (one reason for the error). Use assert
 
     tot_time = len(data_binned_glm['spk_mat'][0])
-    print(tot_time)
 
     text_content = f"ID cells selected for this inference is {data_read} and the corresponding indices are {cells_index}"
-
     with open(path_info_dir + "cells_list_and_indices.txt", "w") as file:
         file.write(text_content)
 
@@ -197,8 +172,6 @@ def cells_selection_manual(data_continous_ratemaps, data_binned_glm, csv_file_ce
 # TODO: capital print to warn about the deleted time points of the mask and
 def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_top_folder,
                    path_analysis_dir,  predictors_name_list, tot_time, cell_index):
-    # #!!remember first folder "path_plots", insert in the right function to have the .txt and other files in
-    # the right place!!##
     """
     Main function to process the data (neurons' and predictors' time series)
     """
@@ -216,52 +189,49 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
     if not os.path.exists(path_top_folder + name_upper_folder):
         os.makedirs(path_top_folder + name_upper_folder)
     plots_folder = path_top_folder + name_upper_folder
-    print(plots_folder)
+
+    # TODO: should I use time.sleep() to let the message remain for longer? for what I understood it pause the run
+    print(f"IMPORTANT: given the presence of nans (missing points of the camera) part of the data are deleted." +
+          f"If the number of missing points is 'small enough', it should not interfere with the inference."
+          f"Below the ratio of missing points")
 
     for k in range(dict_param['num_predicotrs']):
-        # #take only the common (shared, redundant) indices##
 
+        # take only the common (shared, redundant) indices
         mask_raw = np.ma.masked_where(
             np.isnan(data_continous_ratemaps['possiblecovariates'][f"{predictors_name_list[k]}"]) == True,
             data_continous_ratemaps['possiblecovariates'][f"{predictors_name_list[k]}"],
-            copy=True)  # condition, object to evaluate, create a separate copy
+            copy=True)
         tot_mask_indices = np.where(np.isfinite(mask_raw))[
             0]  # find the index for the finite elements(not nan)
         tot_masked_indices_list.append(tot_mask_indices)
         T_list.append(len(tot_mask_indices))
 
-        # #assign the processed predictors containing only the common indices and adding the bias term initialized to 1
-        # (!important, shouldn't be a zero)
+        # assign the processed predictors containing only the common indices and adding the bias term initialized to 1
+        # (!important, the bias term shouldn't be initialized to zero)
         inpts = np.ones((dict_param['num_indep_neurons'], T_list[k], 2),
-                        dtype=np.float64)  # maybe float32 considerably faster? # initialize inpts array
-        # (the bias should be one to avoid problems. Important not zeros)
+                        dtype=np.float64)
         inpts[:, :, 0] = data_continous_ratemaps['possiblecovariates'][f"{predictors_name_list[k]}"][tot_mask_indices]
-        # it 0 becuase only one predictor in this module...
-        inpts = list(inpts)  # convert inpts to correct format   # in partiular if you have different length of the time
-        # the spike trains or for the predictors
+        inpts = list(inpts)  # convert inpts to correct format   #in partiular if you have different length of the time
         inputs_list.append(inpts)
-    # print(states, dict_param['num_indep_neurons'], M-1)
 
+    # TODO: look for redundancy and modify it accordingly
     # #!create the structure for multiple neurons, thus a nested list for each first loop!##
     process_neur = []  # requested list structure for multiple neurons with sessions
-    for i in range(len(dict_param['list_states'])):  # states
-        for j in range(dict_param['num_indep_neurons']):  # neurons
-            for k in range(dict_param['num_predicotrs']):  # predictors
-                # #select the neuron in the list above and the valid (shared among the predictors) indices.
-                # Then generate the right structure.##
+    for i in range(len(dict_param['list_states'])):
+        for j in range(dict_param['num_indep_neurons']):
+            for k in range(dict_param['num_predicotrs']):
                 selected_neur_mat = data_binned_glm['spk_mat'][
-                    cell_index[j]]  # double check if the neurons are correct
-
+                    cell_index[j]]
+                # brutal binarization (possible presence of 2 or more firing each bin)
                 selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)
-                # brutal binarization (possible presence of 2 or more firing each bin) #?ok or better way to do it
-                reduced_matrix = selected_neur_mat[
-                    tot_masked_indices_list[k]]  # selectiong the first neuron and taking only the shared indices
+                # selecting the first neuron and taking only the shared indices to use the mask
+                reduced_matrix = selected_neur_mat[tot_masked_indices_list[k]]
                 process_neur.append(reduced_matrix.reshape((T_list[k], 1)))  # reshape in the correct format
-                # #if multiple neurons, generalize    #process_neur.append(reduced_matrix[m].reshape((T,1)))
-                miss_points_ratio = (tot_time - T_list[k]) / tot_time  # checking how many points are lost due to nan
-                # in the precictors (no nans in the neural response)
-                # ##create a folder for the particular case with .txt description###
-
+                # checking how many points are lost due to nans  in the predictors (no nans in the neural response)
+                miss_points_ratio = (tot_time - T_list[k]) / tot_time
+                # create a folder for the particular case (model, neuron and predictor) with .txt description###
+                print(f"!Fraction missing points is {miss_points_ratio} for the model {i} neuron {j} and predictor {k}")
                 name_folder = f"KAV_s3_states={dict_param['list_states'][i]}_numsess={dict_param['num_indep_neurons']}" \
                               + f"_max_iters={dict_param['N_iters']}_tolerance={dict_param['tolerance']}" + \
                               f"_numpredict={1}" + \
@@ -278,7 +248,6 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
                                f"obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}" \
                                f"_method={dict_param['optim_method']}" "\n" \
                                f"fraction of missing points={miss_points_ratio}"
-                # f"predictors={predictors_name_list}" "\n" f"cells={list_string_cells}" "\n"
 
                 with open(plots_folder + name_folder + "description_parameters.txt", "w") as file:
                     file.write(text_content)
@@ -286,12 +255,14 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
                 path_to_plots = plots_folder + name_folder  # save the folder for each inference for single plots
                 path_plots_list.append(path_to_plots)
 
+                # create the istances for inference
                 test_glmhmm = ssm.HMM(dict_param['list_states'][i], dict_param['num_dimen'], 2,
                                       observations=dict_param['observation_type'],
                                       observation_kwargs=dict(C=dict_param['num_categ_obs']),
                                       transitions=dict_param['transistion_type'])
                 glmhmms_ista.append(test_glmhmm)
 
+    # dictionary to store all the objects and istances to do the inference off module
     dict_objects = {}
     dict_objects["glmhmms_ista"] = glmhmms_ista
     dict_objects["process_neur"] = process_neur

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
+import itertools
 
 # ####-----Plotting section, still with some part of inference output processing-----#####
 
@@ -26,7 +27,7 @@ def log_like_evolution_per_states(fit_ll_states_list, dict_param, general_folder
     for i in range(len(dict_param['list_states'])):
         for j in range(dict_param['num_predicotrs']):  # #!!cluster with lw or color the states and the neurons
             plt.plot(fit_ll_states_list[i][j], color=colors_states[i])  # ,color=CB_color_cycle[i]
-        plt.plot(fit_ll_states_list[i][-1], color=colors_states[i], label=name_states[i])
+        plt.plot(fit_ll_states_list[i][dict_param['num_predicotrs']-1], color=colors_states[i], label=name_states[i])
     plt.legend(loc="best", fontsize=10)
     plt.xlabel("EM Iteration")
     plt.xlim(0, dict_param['N_iters'])
@@ -183,6 +184,50 @@ def transition_prob_matrix(plots_folder, dict_param, glmhmms_ista):
     plt.tight_layout()
     plt.savefig(plots_folder + f"transition_prob_matrix" + post_description_savefig, bbox_inches="tight", dpi=dpi)
     plt.show()
+# -------------------------------------------------------------------------------------------------------------------- #
+
+def weights_distribution_histogram(plots_folder, dict_param, inf_weight_dict):
+    """
+    Histogram of parameters distribution. Divided by predictors and bias term, plus combined distribution
+    """
+
+    dpi = 120  # dots per inch give the size of the picture and indirectly #! check the one in the papers
+    fcc = 'w'  # white background
+    ec = 'k'  # black frame
+    post_description_savefig = f"numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
+                               f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
+                               f"_tot_pred={dict_param['num_predicotrs']}_obs={dict_param['observation_type']}" \
+                               f"_trans={dict_param['transistion_type']}_method={dict_param['optim_method']}" \
+                               f"_KAV_s3_distal.pdf"
+
+    flat_bias_w = []
+    flat_predictor_w = []
+    for key in inf_weight_dict.keys():
+        for i in range(dict_param['num_predicotrs']):
+            flat_predictor_w.append(list(inf_weight_dict[key][i][:,0,0]))
+            flat_bias_w.append(inf_weight_dict[key][i][:,0,1])
+    flat_predictor_w = list(itertools.chain.from_iterable(flat_predictor_w))
+    flat_bias_w = list(itertools.chain.from_iterable(flat_bias_w))
+    flat_all_weights = flat_predictor_w + flat_bias_w
+
+
+    weights_lists = [flat_predictor_w, flat_bias_w, flat_all_weights]
+    titles_histo = ["Predictor weight", "Bias weight", "Both weights"]
+
+    fig = plt.figure(figsize=(15, 10), dpi=dpi, facecolor=fcc, edgecolor=ec)
+    for i in range(3):
+        fig.add_subplot(2,2,i+1)
+        counts, edges = np.histogram(weights_lists[i], bins=50)
+        plt.stairs(counts, edges, fill=True, alpha=0.5)
+        plt.xlabel(f"Weight amplitude", fontsize = 10)
+        plt.ylabel("Occurrences", fontsize = 10)
+        plt.title(titles_histo[i])
+    plt.tight_layout()
+    plt.savefig(plots_folder + f"weights_distribution_histogram" + post_description_savefig,bbox_inches="tight",dpi=dpi)
+    plt.show()
+
+
+
 
 # TODO: generalize the differences and plots for higher number of states
     """
