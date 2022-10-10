@@ -37,8 +37,10 @@ def log_like_evolution_per_states(fit_ll_states_list, dict_param, general_folder
                 dpi=dpi)
     plt.show()
 
+# -------------------------------------------------------------------------------------------------------------------- #
 
-
+# TODO: generalize. This function shows all the time length thus condition on the product.
+#TODO: create another function to visualize from start to end ([start:end])
 
 def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_name_list, data_continous_ratemaps,
                                              tot_masked_indices_list, T_list, dict_param, general_folder):
@@ -113,9 +115,74 @@ def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_na
 # fourth is just one component list thus only 0 (list of comprehension)
 # fifth is the acutal array (2 components; (len,state))
 
+# -------------------------------------------------------------------------------------------------------------------- #
 
 
+# TODO: generalize for different states
+def states_occupancies_histogram(plots_folder, dict_param, states_occupancies=None, file_states_occup=None):
 
+    colormap_size = np.linspace(0, 1, states_occupancies.shape[0])
+    for i in range(len(colormap_size)):
+        colors_states = cmx.jet(colormap_size)
+    # name_states = [str(x) + "_states" for x in np.arange(1, state_occupancies.shape[0] +1)
+    # use name states in the ticks when automatized?
+
+    dpi = 120  # dots per inch give the size of the picture #! check the one in the papers
+    fcc = 'w'  # white background
+    ec = 'k'  # black frame
+
+    post_description_savefig = f"numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
+                               f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
+                               f"_tot_pred={dict_param['num_predicotrs']}_obs={dict_param['observation_type']}" \
+                               f"_trans={dict_param['transistion_type']}_method={dict_param['optim_method']}" \
+                               f"_KAV_s3_distal.pdf"
+
+    fig = plt.figure(figsize=(2, 2.5), dpi=80, facecolor=fcc, edgecolor=ec)
+    for z, occ in enumerate(states_occupancies):
+        plt.bar(z, occ, width=0.8, color=colors_states[z])
+    plt.ylim((0, 1))
+    plt.xticks([0, 1, 2], ['1', '2', '3'], fontsize=10)
+    plt.yticks([0, 0.5, 1], ['0', '0.5', '1'], fontsize=10)
+    plt.xlabel('state', fontsize=15)
+    plt.ylabel('frac. occupancy', fontsize=15)
+    plt.tight_layout()
+    plt.savefig(plots_folder + f"states_occupancies_histogram" + post_description_savefig, bbox_inches="tight", dpi=dpi)
+    plt.show()
+
+# -------------------------------------------------------------------------------------------------------------------- #
+
+def transition_prob_matrix(plots_folder, dict_param, glmhmms_ista):
+
+    dpi = 120  # dots per inch give the size of the picture #! check the one in the papers
+    fcc = 'w'  # white background
+    ec = 'k'  # black frame
+
+    post_description_savefig = f"numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
+                               f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
+                               f"_tot_pred={dict_param['num_predicotrs']}_obs={dict_param['observation_type']}" \
+                               f"_trans={dict_param['transistion_type']}_method={dict_param['optim_method']}" \
+                               f"_KAV_s3_distal.pdf"
+
+    comp_istance = 0
+    num_states = glmhmms_ista[comp_istance].transitions.log_Ps.shape[0]
+
+
+    fig = plt.figure(figsize=(7, 4), dpi=dpi, facecolor=fcc, edgecolor=ec)
+    fig.add_subplot(1, 1, 1)
+    recovered_trans_mat = np.exp(glmhmms_ista[comp_istance].transitions.log_Ps)
+    plt.imshow(recovered_trans_mat, vmin=-0.8, vmax=1, cmap='bone')
+    for i in range(recovered_trans_mat.shape[0]):
+        for j in range(recovered_trans_mat.shape[1]):
+            text = plt.text(j, i, str(np.around(recovered_trans_mat[i, j], decimals=2)), ha="center", va="center",
+                            color="k", fontsize=12)
+    plt.xlim(-0.5, num_states - 0.5)
+    plt.xticks(range(0, num_states), ('1', '2'), fontsize=10)
+    plt.yticks(range(0, num_states), ('1', '2'), fontsize=10)
+    plt.ylim(num_states - 0.5, -0.5)
+    plt.title("recovered", fontsize=15)
+    plt.tight_layout()
+    plt.savefig(plots_folder + f"transition_prob_matrix" + post_description_savefig, bbox_inches="tight", dpi=dpi)
+    plt.show()
 
 # TODO: generalize the differences and plots for higher number of states
     """
@@ -123,6 +190,7 @@ def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_na
     """
 
 """
+    
 def weights_distribution(dict_param, threshold_diff_pred=0.1):
 
 

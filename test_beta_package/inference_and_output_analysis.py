@@ -1,6 +1,7 @@
 # import ssm
 import pickle
 import time
+import numpy as np
 """ 
 This module contains the function to run the inference and to further process the output
 """
@@ -26,7 +27,6 @@ def inference_section(glmhmms_ista, process_neur, inputs_list, dict_param, path_
             fit_ll_list.append(fit_ll)
             fit_ll_states_list[i].append(fit_ll)
             time_states_comp[i].append(time.time() - partial_clock)
-            # TODO: save each comp time to make a statistic?
             print(
                 f"computation time loop {(i * (dict_param['num_predicotrs'])) + j} is {time.time() - partial_clock}")
     time_states_comp.append(time.time() - startclock)  # thus time_states_comp length is states*num_pred + 1
@@ -68,4 +68,29 @@ def posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list, 
     a_file.close()
 
     return posterior_probs_list
+
+
+# TODO: decide if splitting the states_occupancies in 2 function (one for single and the other across all inferences)
+def states_occupancies_computation(path_analysis_dir, posterior_probs_list):
+    """
+    Obtain the state with maximum posterior probability at particular time point and to generate the histogram
+    Is possible to concatenate the obtained quantities across different neurons (this can be useful if you are assuming
+    the different neurons to be in the same hidden state)
+    """
+
+    # for each time point, selecting which is the max of those states value
+    state_max_posterior = np.argmax(posterior_probs_list[1][0][0][0], axis=1)
+
+    # now obtain state fractional occupancies:
+    _, states_occupancies = np.unique(state_max_posterior, return_counts=True)
+    states_occupancies = states_occupancies / np.sum(states_occupancies)
+
+    dict_states_occupancies = {"states_occupancies" : states_occupancies}
+
+    data_file_name = 'dict_states_occupancies.pkl'
+    a_file = open(path_analysis_dir + data_file_name, "wb")
+    pickle.dump(dict_states_occupancies, a_file)
+    a_file.close()
+
+    return states_occupancies
 

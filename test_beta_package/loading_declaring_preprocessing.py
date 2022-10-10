@@ -52,12 +52,18 @@ def load_data(file_ratemaps, file_glm, path_data):  # after Jingyi pipeline proc
     path_info_dir = os.path.dirname(os.path.abspath(path_top_folder + info_dir)) + "/info_dir/"
     print(f"absolute path is {path_info_dir}")
 
+    analysis_dir = f"analysis_dir/"
+    if not os.path.exists(path_top_folder + analysis_dir):
+        os.makedirs(path_top_folder + analysis_dir)
+    path_analysis_dir = os.path.dirname(os.path.abspath(path_top_folder + analysis_dir)) + "/analysis_dir/"
+    print(f"absolute path is {path_analysis_dir}")
+
     # TODO: procesed_data folder to store the various dictionary with objects and quantities
 
     # TODO: create the path to data for actual data and csv and all useful files pre running
     # TODO: or even separate the folder function so that it creates the structure before
 
-    return data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir
+    return data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir
 
 
 """
@@ -189,8 +195,8 @@ def cells_selection_manual(data_continous_ratemaps, data_binned_glm, csv_file_ce
 
 
 # TODO: capital print to warn about the deleted time points of the mask and
-def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, predictors_name_list,
-                   tot_time, cell_index):
+def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_top_folder,
+                   path_analysis_dir,  predictors_name_list, tot_time, cell_index):
     # #!!remember first folder "path_plots", insert in the right function to have the .txt and other files in
     # the right place!!##
     """
@@ -245,8 +251,7 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
                 # Then generate the right structure.##
                 selected_neur_mat = data_binned_glm['spk_mat'][
                     cell_index[j]]  # double check if the neurons are correct
-                print(selected_neur_mat.shape)
-                print(selected_neur_mat.shape)
+
                 selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)
                 # brutal binarization (possible presence of 2 or more firing each bin) #?ok or better way to do it
                 reduced_matrix = selected_neur_mat[
@@ -293,15 +298,13 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
     dict_objects["inputs_list"] = inputs_list
     dict_objects["T_list"] = T_list
     dict_objects["tot_masked_indices_list"] = tot_masked_indices_list
+    dict_objects["path_plots_list"] = path_plots_list
 
     data_file_name = 'dict_objects.pkl'
-    a_file = open(path_info_dir + data_file_name, "wb")
+    a_file = open(path_analysis_dir + data_file_name, "wb")
     pickle.dump(dict_objects, a_file)
     a_file.close()
 
     return glmhmms_ista, process_neur, inputs_list, T_list, tot_masked_indices_list, path_plots_list, plots_folder
-
-# TODO: save the output above (data_structure()) in a json or... to feed in the second part of the inference (multi-predictor)
-
 
 
