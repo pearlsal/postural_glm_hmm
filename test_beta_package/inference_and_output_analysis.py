@@ -12,7 +12,7 @@ def inference_section(path_analysis_dir, path_info_dir, dict_param, glmhmms_ista
     This function performs the fitting procedure.
     It creates a structure for the output quantities to be handled easier (per states)
     If you want to run the function separately, after you already did the inference, you should put dict_objects="a" or
-    whatever other quantities acceptable as input (only a without quotes will not work)
+    number or whatever other quantities acceptable as input (only a without quotes will not work)
     """
     startclock = time.time()
     time_states_comp = []
