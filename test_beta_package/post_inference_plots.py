@@ -72,9 +72,9 @@ def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_na
     # ls = ["--", ":", "-."]
     lw = [1, 1, 1, 1]
     T = T_list[index_istance_struct]
-    plotrows = 6
+    plotrows = 5
     plotcolumns = 5
-    time_interval = 4700
+    time_interval = 4500
     start_time_list = np.arange(0, T - time_interval, time_interval)
     end_time_list = np.arange(time_interval, T, time_interval)
 
