@@ -9,7 +9,10 @@ This module contains the function to run the inference and to further process th
 def inference_section(path_analysis_dir, path_info_dir, dict_param, glmhmms_ista=None, process_neur=None,
                       inputs_list=None, dict_objects=None):
     """
-
+    This function performs the fitting procedure.
+    It creates a structure for the output quantities to be handled easier (per states)
+    If you want to run the function separately, after you already did the inference, you should put dict_objects="a" or
+    whatever other quantities acceptable as input (only a without quotes will not work)
     """
     startclock = time.time()
     time_states_comp = []
@@ -60,6 +63,13 @@ def inference_section(path_analysis_dir, path_info_dir, dict_param, glmhmms_ista
 # TODO: check if it is better save the posterior in nested dict and not list
 def posterior_prob_process(path_info_dir, path_analysis_dir, dict_param, glmhmms_ista=None, process_neur=None,
                            inputs_list=None, dict_processed_objects=None):
+    """
+    This function computes the posterior probability for each model, state and neuron (in this case single predictor as
+    well)
+    The objects are saved in a pickle file for further processing in case the inference was time consuming
+    In addition it saved the computation time for each fitting procedure for computational time statistic
+    """
+
     startclock = time.time()
     posterior_probs_list = []
 
