@@ -26,12 +26,23 @@ glmhmms_ista, process_neur, inputs_list, T_list, tot_masked_indices_list, path_p
 print(plots_folder)
 
 # inference part #
-fit_ll_states_list, glmhmms_ista, time_states_comp = inference_section(glmhmms_ista, process_neur,
-                                                                                    inputs_list, dict_param,
-                                                                                    path_info_dir)
+# with previous inputs
+# fit_ll_states_list, glmhmms_ista, time_states_comp = inference_section(path_analysis_dir, path_info_dir, dict_param,
+#                                                                        glmhmms_ista=glmhmms_ista,
+#                                                                        process_neur=process_neur,
+#                                                                        inputs_list=inputs_list, dict_param=dict_param)
+# loading the pickle
+fit_ll_states_list, glmhmms_ista, time_states_comp = inference_section(path_analysis_dir, path_info_dir, dict_param,
+                                                                       dict_objects="a")
 print(fit_ll_states_list, time_states_comp)
 
-posterior_probs_list = posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list, path_info_dir)
+# with input from the code
+# posterior_probs_list = posterior_prob_process(path_info_dir, path_analysis_dir, dict_param, glmhmms_ista=glmhmms_ista,
+#                                               process_neur=process_neur, inputs_list=inputs_list)
+
+# loading the pickle
+posterior_probs_list = posterior_prob_process(path_info_dir, path_analysis_dir, dict_param, dict_processed_objects="a")
+
 print(posterior_probs_list)
 
 states_occupancies = states_occupancies_computation(path_analysis_dir, posterior_probs_list)

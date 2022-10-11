@@ -6,10 +6,21 @@ import numpy as np
 This module contains the function to run the inference and to further process the output
 """
 
-def inference_section(glmhmms_ista, process_neur, inputs_list, dict_param, path_info_dir):
+def inference_section(path_analysis_dir, path_info_dir, dict_param, glmhmms_ista=None, process_neur=None,
+                      inputs_list=None, dict_objects=None):
+    """
+
+    """
     startclock = time.time()
     time_states_comp = []
     fit_ll_states_list = []  # log-likelihood sorted by number of states model
+
+    if dict_objects is not None:
+        with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+        glmhmms_ista = dict_objects["glmhmms_ista"]
+        process_neur = dict_objects["process_neur"]
+        inputs_list = dict_objects["inputs_list"]
 
     # #!introduce the loop for neurons!##
     for i in range(len(dict_param['list_states'])):
@@ -31,12 +42,34 @@ def inference_section(glmhmms_ista, process_neur, inputs_list, dict_param, path_
     with open(path_info_dir + 'computation_time_inference.pkl', 'wb') as fp:
         pickle.dump(time_states_comp, fp)
 
+    dict_processed_objects = {}
+    dict_processed_objects["glmhmms_ista"] = glmhmms_ista
+    dict_processed_objects["process_neur"] = process_neur
+    dict_processed_objects["inputs_list"] = inputs_list
+    dict_processed_objects["fit_ll_states_list"] = fit_ll_states_list
+    dict_processed_objects["time_states_comp"] = time_states_comp
+
+
+    data_file_name = 'dict_processed_objects.pkl'
+    a_file = open(path_analysis_dir + data_file_name, "wb")
+    pickle.dump(dict_processed_objects, a_file)
+    a_file.close()
+
     return fit_ll_states_list, glmhmms_ista, time_states_comp
 
 # TODO: check if it is better save the posterior in nested dict and not list
-def posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list, path_info_dir):
+def posterior_prob_process(path_info_dir, path_analysis_dir, dict_param, glmhmms_ista=None, process_neur=None,
+                           inputs_list=None, dict_processed_objects=None):
     startclock = time.time()
     posterior_probs_list = []
+
+    if dict_processed_objects is not None:
+        with open(path_analysis_dir + 'dict_processed_objects.pkl', 'rb') as handle:
+            dict_processed_objects = pickle.load(handle)
+        glmhmms_ista = dict_processed_objects["glmhmms_ista"]
+        process_neur = dict_processed_objects["process_neur"]
+        inputs_list = dict_processed_objects["inputs_list"]
+
     for i in range(len(dict_param['list_states'])):
         posterior_probs_list.append([])  # structure for different states
         for k in range(dict_param['num_indep_neurons']):
