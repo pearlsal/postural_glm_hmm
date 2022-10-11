@@ -55,12 +55,15 @@ def load_data(file_ratemaps, file_glm, path_data):  # after Jingyi pipeline proc
         os.makedirs(path_top_folder + analysis_dir)
     path_analysis_dir = os.path.dirname(os.path.abspath(path_top_folder + analysis_dir)) + "/analysis_dir/"
 
+    splitted_name = data_continous_ratemaps['output_file_prefix'].split("_")
+    animal_name = splitted_name[0] + "_" + splitted_name[2] + "_" + splitted_name[3]
+
     # TODO: procesed_data folder to store the various dictionary with objects and quantities
 
     # TODO: create the path to data for actual data and csv and all useful files pre running
     # TODO: or even separate the folder function so that it creates the structure before
 
-    return data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir
+    return data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir, animal_name
 
 # TODO: save txt-csv with all information
 def get_data_information(data_continous_ratemaps, path_info_dir, data_binned_glm):
@@ -90,7 +93,7 @@ num_indep_neurons == number of independent neurons in case the option selected f
 """
 
 
-def dict_parameters_hmm(path_info_dir, num_dimen, num_categ_obs, N_iters, tolerance, num_indep_neurons, num_predicotrs,
+def dict_parameters_hmm(path_info_dir,  animal_name, num_dimen, num_categ_obs, N_iters, tolerance, num_indep_neurons, num_predicotrs,
                         max_num_states, observation_type, transistion_type, optim_method):
     """
     This function includes all the parameters for the inference.
@@ -111,6 +114,7 @@ def dict_parameters_hmm(path_info_dir, num_dimen, num_categ_obs, N_iters, tolera
     dict_param['observation_type'] = observation_type
     dict_param['transistion_type'] = transistion_type
     dict_param['optim_method'] = optim_method
+    dict_param['animal_name'] = animal_name
 
     data_file_name = 'dictionary_parameters.pkl'
     with open(path_info_dir + data_file_name, "wb") as handle:
@@ -185,7 +189,7 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
     date = datetime.date.today()
 
     # TODO: automatize the name (kav_s2_interm) from the file!!##
-    name_upper_folder = f"KAV_s3_distal_1pred_{date}_run/"
+    name_upper_folder = f"{dict_param['animal_name']}_1pred_{date}_run/"
     if not os.path.exists(path_top_folder + name_upper_folder):
         os.makedirs(path_top_folder + name_upper_folder)
     plots_folder = path_top_folder + name_upper_folder
@@ -232,16 +236,15 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
                 miss_points_ratio = (tot_time - T_list[k]) / tot_time
                 # create a folder for the particular case (model, neuron and predictor) with .txt description###
                 print(f"!Fraction missing points is {miss_points_ratio} for the model {i} neuron {j} and predictor {k}")
-                name_folder = f"KAV_s3_states={dict_param['list_states'][i]}_numsess={dict_param['num_indep_neurons']}" \
+                name_folder = f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}_numsess={dict_param['num_indep_neurons']}" \
                               + f"_max_iters={dict_param['N_iters']}_tolerance={dict_param['tolerance']}" + \
                               f"_numpredict={1}" + \
-                              f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}" + \
-                              f"_distal/"
+                              f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}"
                 if not os.path.exists(plots_folder + "/" + name_folder):
                     os.makedirs(plots_folder + "/" + name_folder)
 
                 text_content = f"Single predictor and neuron inference. Predictor selection." "\n" \
-                               f"KAV_s3_states={dict_param['list_states'][i]}" \
+                               f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}" \
                                f"_numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
                                f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
                                f"_tot_pred={dict_param['num_predicotrs']}_distal" "\n" \

@@ -1,7 +1,7 @@
 # ####-----test to run the beta package-----#####
 from test_beta_package import *
 
-data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir = \
+data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir, animal_name = \
     load_data("bruno_ready_for_ratemaps_or_GLM_processing_s3.pkl", "bruno_ready_for_GLMHMM_inference_s3.pkl",
               "./data/")
 print(path_top_folder)
@@ -9,7 +9,7 @@ print(path_top_folder)
 predictors_name_list = get_data_information(data_continous_ratemaps, path_info_dir, data_binned_glm)
 print(predictors_name_list)
 
-dict_param = dict_parameters_hmm(path_info_dir, num_dimen=1, num_categ_obs=2, N_iters=2, tolerance=10 ** -5, num_indep_neurons=2,
+dict_param = dict_parameters_hmm(path_info_dir,  animal_name, num_dimen=1, num_categ_obs=2, N_iters=2, tolerance=10 ** -5, num_indep_neurons=2,
                                  num_predicotrs=2, max_num_states=3, observation_type="input_driven_obs",
                                  transistion_type="inputdriven", optim_method="em")
 print(dict_param)
@@ -26,7 +26,7 @@ glmhmms_ista, process_neur, inputs_list, T_list, tot_masked_indices_list, path_p
 print(plots_folder)
 
 # inference part #
-fit_ll_list, fit_ll_states_list, glmhmms_ista, time_states_comp = inference_section(glmhmms_ista, process_neur,
+fit_ll_states_list, glmhmms_ista, time_states_comp = inference_section(glmhmms_ista, process_neur,
                                                                                     inputs_list, dict_param,
                                                                                     path_info_dir)
 print(fit_ll_states_list, time_states_comp)
@@ -38,8 +38,8 @@ states_occupancies = states_occupancies_computation(path_analysis_dir, posterior
 
 log_like_evolution_per_states(fit_ll_states_list, dict_param, plots_folder)
 
-# posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_name_list, data_continous_ratemaps,
-#                                         tot_masked_indices_list, T_list, dict_param, plots_folder)
+posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_name_list, data_continous_ratemaps,
+                                        tot_masked_indices_list, T_list, dict_param, plots_folder)
 
 states_occupancies_histogram(path_info_dir, dict_param, states_occupancies=states_occupancies)
 

@@ -1,1 +1,0 @@
-ID cells used in this inference is ['imec0_cl0107_ch190' 'imec0_cl0317_ch063'] and the corresponding indices are [36, 195]

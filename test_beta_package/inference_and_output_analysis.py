@@ -9,8 +9,6 @@ This module contains the function to run the inference and to further process th
 def inference_section(glmhmms_ista, process_neur, inputs_list, dict_param, path_info_dir):
     startclock = time.time()
     time_states_comp = []
-    fit_ll_list = []  # redundant, just ravel the one below  #save for each inference,
-    # but flat (no list for different states model)
     fit_ll_states_list = []  # log-likelihood sorted by number of states model
 
     # #!introduce the loop for neurons!##
@@ -24,7 +22,6 @@ def inference_section(glmhmms_ista, process_neur, inputs_list, dict_param, path_
                 .fit(process_neur[(i * dict_param['num_predicotrs']) + j], inputs=inputs_list[j][0],
                      method=dict_param['optim_method'], num_iters=dict_param['N_iters'],
                      tolerance=dict_param['tolerance'])  # actual inference
-            fit_ll_list.append(fit_ll)
             fit_ll_states_list[i].append(fit_ll)
             time_states_comp[i].append(time.time() - partial_clock)
             print(
@@ -34,13 +31,12 @@ def inference_section(glmhmms_ista, process_neur, inputs_list, dict_param, path_
     with open(path_info_dir + 'computation_time_inference.pkl', 'wb') as fp:
         pickle.dump(time_states_comp, fp)
 
-    return fit_ll_list, fit_ll_states_list, glmhmms_ista, time_states_comp
+    return fit_ll_states_list, glmhmms_ista, time_states_comp
 
-
+# TODO: check if it is better save the posterior in nested dict and not list
 def posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list, path_info_dir):
     startclock = time.time()
     posterior_probs_list = []
-    print(inputs_list[0][0].shape)
     for i in range(len(dict_param['list_states'])):
         posterior_probs_list.append([])  # structure for different states
         for k in range(dict_param['num_indep_neurons']):
@@ -49,8 +45,7 @@ def posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list, 
                 posterior_probs = [glmhmms_ista[i * ((dict_param['num_predicotrs']) * dict_param['num_indep_neurons']) +
                                                 (k * dict_param['num_indep_neurons']) + j].
                                        expected_states(data=data, input=inpt)[0]
-                                   # way to get the posterior probability for each state #check the passage in the
-                                   # ssm code
+                                   # way to get the posterior probability for each state
                                    for data, inpt
                                    in zip([process_neur[
                                                i * ((dict_param['num_predicotrs']) * dict_param['num_indep_neurons']) +
@@ -59,7 +54,7 @@ def posterior_prob_process(dict_param, glmhmms_ista, process_neur, inputs_list, 
     comp_time_posterior = time.time() - startclock
     print(f"Total computation timefor posterior probability is {comp_time_posterior}")
 
-    dict_posterior = {"posterior":posterior_probs_list}
+    dict_posterior = {"posterior" : posterior_probs_list}
     print(dict_posterior)
 
     data_file_name = 'dict_posterior.pkl'
