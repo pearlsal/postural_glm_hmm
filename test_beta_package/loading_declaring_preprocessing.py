@@ -64,6 +64,8 @@ def load_data(file_ratemaps, file_glm, path_data):  # after Jingyi pipeline proc
     # TODO: or even separate the folder function so that it creates the structure before
 
     return data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir, animal_name
+# -------------------------------------------------------------------------------------------------------------------- #
+
 
 # TODO: save txt-csv with all information
 def get_data_information(data_continous_ratemaps, path_info_dir, data_binned_glm):
@@ -75,6 +77,7 @@ def get_data_information(data_continous_ratemaps, path_info_dir, data_binned_glm
     # cells_id = data_continous_ratemaps['cell_names']
 
     return predictors_name_list  # , list(cells_id)
+# -------------------------------------------------------------------------------------------------------------------- #
 
 
 """
@@ -121,6 +124,8 @@ def dict_parameters_hmm(path_info_dir,  animal_name, num_dimen, num_categ_obs, N
         pickle.dump(dict_param, handle)
 
     return dict_param
+# -------------------------------------------------------------------------------------------------------------------- #
+
 
 # TODO: use assert  to check if all the spike trains have the same length so that I can take ['spk_mat'][0] and..
 def cells_selection_random(data_continous_ratemaps, data_binned_glm, dict_param, path_info_dir):
@@ -143,6 +148,7 @@ def cells_selection_random(data_continous_ratemaps, data_binned_glm, dict_param,
         file.write(text_content)
 
     return cells_index, tot_time
+# -------------------------------------------------------------------------------------------------------------------- #
 
 
 # TODO: discuss with Jonathan and Ben and create an automatic selection (N neurons chosen randomly or....?)
@@ -171,6 +177,7 @@ def cells_selection_manual(data_continous_ratemaps, data_binned_glm, csv_file_ce
         file.write(text_content)
 
     return cells_index, tot_time
+# -------------------------------------------------------------------------------------------------------------------- #
 
 
 # TODO: capital print to warn about the deleted time points of the mask and
@@ -280,5 +287,75 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
     a_file.close()
 
     return glmhmms_ista, process_neur, inputs_list, T_list, tot_masked_indices_list, path_plots_list, plots_folder
+# -------------------------------------------------------------------------------------------------------------------- #
 
+###multiple predictors structure for inference###
 
+# input all_predictors_list = list_from_other_function
+# import a csv file with the same structure of the cells
+# ? TODO: compare the strings to be sure they are correct?
+
+def data_structure_multicov(path_analysis_dir, path_info_dir, dict_param, glmhmms_ista=None, process_neur=None,
+                            inputs_list=None, dict_objects=None, file_predictors=None):
+    predictors_name_list = ['Q Ego2_head_pitch_2nd_der', 'Q Ego2_head_pitch', 'Q Ego2_head_pitch_1st_der',
+                            'L Ego3_Head_pitch_1st_der', 'L Ego3_Head_pitch_2nd_der', 'L Ego3_Head_pitch']
+    print(predictors_name_list)
+    masked_values = []
+    for i in range(M - 1):
+        test_mask = np.where(
+            np.isnan(data_continous_ratemaps['possiblecovariates'][f"{predictors_name_list[i]}"]) == True, 0, 1)
+        print(len(np.nonzero(test_mask)[0]))
+        index_1_mask = np.where(test_mask == 1)[0]
+        masked_values.append(list(index_1_mask))
+
+    # remove the fir st if and put an assert to suggest the other function
+    if M - 1 == 1:
+        tot_mask_indices = masked_values[0]
+    elif M - 1 == 2:
+        tot_mask_indices = np.intersect1d(masked_values[0], masked_values[1])
+    else:  # !test!
+        tup_list_indices = [a for a in masked_values]
+        tot_mask_indices = reduce(np.intersect1d, (tup_list_indices))
+    # print(len(tot_mask_indices))
+    print(tot_mask_indices)
+    T = len(tot_mask_indices)
+    print(f"reduced time is {T}")
+    inpts = np.ones((num_sess, T, M),
+                    dtype=np.float64)  # maybe float32 considerably faster? # initialize inpts array  (the bias should be one to avoid problems. Important not zeros)
+    print(inpts.shape)
+    for i in range(M - 2):
+        inpts[:, :, i] = data_continous_ratemaps['possiblecovariates'][f"{predictors_name_list[i]}"][tot_mask_indices]
+    inpts = list(
+        inpts)  # convert inpts to correct format   # in partiular if you have different length of the time for the spike trains or for the predictors
+    # print(inpts[0])
+
+    selected_neur_mat = data_binned_glm['spk_mat'][cell_index]  # double check if the neurons are correct, they should
+    selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)  # brutal binarization
+
+    process_neur = []
+    reduced_matrix = selected_neur_mat[:num_sess, tot_mask_indices]
+    for i in range(num_sess):
+        process_neur.append(reduced_matrix[i].reshape((T, 1)))
+    # print(process_neur)
+    miss_points_ratio = (tot_time - T) / tot_time
+    print(miss_points_ratio)
+
+    observation = "input_driven_obs"  # options are ["bernoulli", "input_driven_obs", "categorical",     ]  where in order [no time predictor allowed, only for 1D,      ]
+    transition = "standard"  # options are ["sticky", "standard", "inputdriven", "stationary", "constrained", "nn_recurrent" ]
+
+    glmhmms_ista = ssm.HMM(K, D, M, observations=observation,
+                           observation_kwargs=dict(C=C), transitions=transition)
+
+    dict_processed_objects_multicov = {}
+    dict_processed_objects_multicov["glmhmms_ista"] = glmhmms_ista
+    dict_processed_objects_multicov["process_neur"] = process_neur
+    dict_processed_objects_multicov["inputs_list"] = inpts
+    dict_processed_objects_multicov["T_list"] = T
+    dict_processed_objects_multicov["tot_masked_indices_list"] = tot_masked_indices
+    dict_processed_objects_multicov["path_plots_list"] = path_plots_list
+    data_file_name = 'dict_processed_objects_multicov.pkl'
+    a_file = open(path_analysis_dir + data_file_name, "wb")
+    pickle.dump(dict_processed_objects_multicov, a_file)
+    a_file.close()
+
+    return

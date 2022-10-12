@@ -30,6 +30,7 @@ def dict_transformed_inferred_weights(path_analysis_dir, dict_param, glmhmms_ist
     a_file.close()
 
     return inf_weight_dict
+# -------------------------------------------------------------------------------------------------------------------- #
 
 
 """

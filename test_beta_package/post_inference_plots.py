@@ -37,7 +37,6 @@ def log_like_evolution_per_states(fit_ll_states_list, dict_param, general_folder
     plt.savefig(general_folder + f"loglikelihood_time_evolution_" + post_description_savefig, bbox_inches="tight",
                 dpi=dpi)
     plt.show()
-
 # -------------------------------------------------------------------------------------------------------------------- #
 
 # TODO: generalize. This function shows all the time length thus condition on the product.
@@ -115,9 +114,7 @@ def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_na
 # third is predictor
 # fourth is just one component list thus only 0 (list of comprehension)
 # fifth is the acutal array (2 components; (len,state))
-
 # -------------------------------------------------------------------------------------------------------------------- #
-
 
 # TODO: generalize for different states
 def states_occupancies_histogram(plots_folder, dict_param, states_occupancies=None, file_states_occup=None):
@@ -149,7 +146,6 @@ def states_occupancies_histogram(plots_folder, dict_param, states_occupancies=No
     plt.tight_layout()
     plt.savefig(plots_folder + f"states_occupancies_histogram" + post_description_savefig, bbox_inches="tight", dpi=dpi)
     plt.show()
-
 # -------------------------------------------------------------------------------------------------------------------- #
 
 def transition_prob_matrix(plots_folder, dict_param, glmhmms_ista):
@@ -225,9 +221,7 @@ def weights_distribution_histogram(plots_folder, dict_param, inf_weight_dict):
     plt.tight_layout()
     plt.savefig(plots_folder + f"weights_distribution_histogram" + post_description_savefig,bbox_inches="tight",dpi=dpi)
     plt.show()
-
-
-
+# -------------------------------------------------------------------------------------------------------------------- #
 
 # TODO: generalize the differences and plots for higher number of states
     """
