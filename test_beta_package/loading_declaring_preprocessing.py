@@ -55,7 +55,7 @@ def load_data(file_ratemaps, file_glm, path_data):  # after Jingyi pipeline proc
         os.makedirs(path_top_folder + analysis_dir)
     path_analysis_dir = os.path.dirname(os.path.abspath(path_top_folder + analysis_dir)) + "/analysis_dir/"
 
-    splitted_name = data_continous_ratemaps['output_file_prefix'].split("_")
+    splitted_name = file_ratemaps.split("_")
     animal_name = splitted_name[0] + "_" + splitted_name[2] + "_" + splitted_name[3]
 
     # TODO: procesed_data folder to store the various dictionary with objects and quantities
@@ -227,7 +227,7 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
                 # binarization (possible presence of 2 spikes each bin)
                 selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)
                 # selecting the first neuron and taking only the shared indices to use the mask
-                reduced_matrix = selected_neur_mat[tot_masked_indices_list[k]]
+                reduced_matrix = selected_neur_mat[tot_masked_indices_list[k]].astype(int)
                 process_neur.append(reduced_matrix.reshape((T_list[k], 1)))  # reshape in the correct format
                 # checking how many points are lost due to nans  in the predictors (no nans in the neural response)
                 miss_points_ratio = (tot_time - T_list[k]) / tot_time

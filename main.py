@@ -2,7 +2,7 @@
 from test_beta_package import *
 
 data_continous_ratemaps, data_binned_glm, path_top_folder, path_info_dir, path_analysis_dir, animal_name = \
-    load_data("bruno_ready_for_ratemaps_or_GLM_processing_s3.pkl", "bruno_ready_for_GLMHMM_inference_s3.pkl",
+    load_data("diana_ready_for_ratemaps_or_GLM_processing_s3.pkl", "diana_ready_for_GLMHMM_inference_s3.pkl",
               "./data/")
 print(path_top_folder)
 
@@ -10,7 +10,7 @@ predictors_name_list = get_data_information(data_continous_ratemaps, path_info_d
 print(predictors_name_list)
 
 dict_param = dict_parameters_hmm(path_info_dir,  animal_name, num_dimen=1, num_categ_obs=2, N_iters=2, tolerance=10 ** -5, num_indep_neurons=2,
-                                 num_predicotrs=2, max_num_states=3, observation_type="input_driven_obs",
+                                 num_predicotrs=3, max_num_states=3, observation_type="input_driven_obs",
                                  transistion_type="inputdriven", optim_method="em")
 print(dict_param)
 
@@ -32,8 +32,9 @@ print(plots_folder)
 #                                                                        process_neur=process_neur,
 #                                                                        inputs_list=inputs_list, dict_param=dict_param)
 # loading the pickle
-fit_ll_states_list, glmhmms_ista, time_states_comp = inference_section(path_analysis_dir, path_info_dir, dict_param,
-                                                                       dict_objects="a")
+fit_ll_states_list, glmhmms_ista, time_states_comp = inference_section(path_analysis_dir, path_info_dir, dict_param,  glmhmms_ista=glmhmms_ista, process_neur=process_neur,
+                      inputs_list=inputs_list)
+
 print(fit_ll_states_list, time_states_comp)
 
 # with input from the code
