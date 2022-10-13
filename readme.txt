@@ -1,18 +1,18 @@
 The code is in its first beta version. 
 
-This package is aimed at bridging the postural pipeline of the Whitlock group with a state space model (ssm-> https://github.com/lindermanlab/ssm ). 
+This package is aimed at bridging the postural pipeline of the Whitlock group with a state space model (ssm-> https://github.com/lindermanlab/ssm). It is under testing on Windows 10.
 
 The state space model is widely applicable in various sets of systems and contexts. One of its main features is being able to link neural activity with time-dependent predictors and highlight correlation among them. 
 Among other applications, this model can extend the Generalized Linear Model (GLM) introducing an arbitrary number of states, each representing a different set of GLM weights.
-The procedure of inference is carried out with a Bayesian approach (see "additional_details" document). This technique implies the computation of the posterior probability per each time point. This quantity can be very useful in case the phenomenon we are interested in, is time-dependent.
+The procedure of inference is carried out with a Bayesian approach (see "additional_details" document). This technique implies the computation of the posterior probability per each time point. This quantity can be particularly useful in case the phenomenon we want to study is time-dependent.
 
 COMMANDS TO RUN:
 Install git on your machine using the link https://git-scm.com/download/win and following the instructions. Remember to install the second option in the Git setup ("Use Git from the Windows Command Prompt").
-Create the folder of your project (e.g. glmhmm_project). Open the powershell and type "git clone https://github.com/teo-fantacci/postural_glm_hmm.git". Then type "cd postural_glm_hmm"
+Create the folder of your project (e.g. glmhmm_project). Open the powershell and type "git clone https://github.com/teo-fantacci/postural_glm_hmm.git". 
 First, you have to install the environment using the command: "conda env create -f environment.yml" and then activate it typing "conda activate glmhmmbeta".
-Secondly, go to "https://github.com/lindermanlab/ssm" and follow the steps (at the page bottom) to install the ssm package (suggested to download in the top-level folder of the project, outside "postural_glm_hmm"). 
+Second, type "cd ssm", then "pip install numpy cython" and finally "pip install -e ." to install completely the ssm package. 
 Assuming you have the pickle file obtained from "prepare4ratemap()" and from "prepare_data4glms()" functions of Jingyi's pipeline and you store them in the folder named "data", change the name of the file to the corresponding animal and you are ready to run the "main.py".
-The options of the package are multiple, but the combinations are strongly constrained in this version. At the current state of development, the "main.py" is an example containing one of the allowed parameters' structures.
+The options of the package are multiple, but the combinations of the parameters are constrained in the ssm. At the current state of development, the "main.py" is an example containing one of the allowed parameters' structures.
 
 NOTEBOOKS:
 The folder "notebooks" contains examples of different types of use of this package. 
