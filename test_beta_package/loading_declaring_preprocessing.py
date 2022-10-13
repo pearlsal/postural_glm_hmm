@@ -86,22 +86,14 @@ def get_data_information(data_continous_ratemaps, path_info_dir, data_binned_glm
 	#w.writerows(data_continous_ratemaps['possiblecovariates'])
 """
 
-"""
-!!! make interactive, printing the options for observation, transition etc....!!!
-num_dimen == number of dimension (!!! in the input_driven and recurrent is possible only num_dimens=1. In the Bernoulli 
-observation must be equal to the number of neuron in the population under study!!!)
 
-num_indep_neurons == number of independent neurons in case the option selected for the observation (transistion too?) 
-
-"""
-
-
-def dict_parameters_hmm(path_info_dir,  animal_name, num_dimen, num_categ_obs, N_iters, tolerance, num_indep_neurons, num_predicotrs,
-                        max_num_states, observation_type, transistion_type, optim_method):
+def dict_parameters_hmm(path_info_dir,  animal_name, num_dimen, num_categ_obs=2, N_iters=100, tolerance=10^-5,
+                        num_indep_neurons=2, num_predicotrs=3, max_num_states=3, observation_type="input_driven_obs",
+                        transistion_type="inputdriven", optim_method="em"):
     """
     This function includes all the parameters for the inference.
     The user has to insert manually the allowed value for the specific type of inference.
-    The constraint description is in the file 'inference_constraint_explanation' in the package folder
+    The constraint description is in the file 'additional_details.txt' in the package folder
     """
     dict_param = {}
 
@@ -195,13 +187,11 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
 
     date = datetime.date.today()
 
-    # TODO: automatize the name (kav_s2_interm) from the file!!##
     name_upper_folder = f"{dict_param['animal_name']}_1pred_{date}_run/"
     if not os.path.exists(path_top_folder + name_upper_folder):
         os.makedirs(path_top_folder + name_upper_folder)
     plots_folder = path_top_folder + name_upper_folder
 
-    # TODO: should I use time.sleep() to let the message remain for longer? for what I understood it pause the run
     print(f"IMPORTANT: given the presence of nans (missing points of the camera) part of the data are deleted." +
           f"If the number of missing points is 'small enough', it should not interfere with the inference."
           f"Below the ratio of missing points")
@@ -234,7 +224,7 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
             for k in range(dict_param['num_predicotrs']):
                 selected_neur_mat = data_binned_glm['spk_mat'][
                     cell_index[j]]
-                # brutal binarization (possible presence of 2 or more firing each bin)
+                # binarization (possible presence of 2 spikes each bin)
                 selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)
                 # selecting the first neuron and taking only the shared indices to use the mask
                 reduced_matrix = selected_neur_mat[tot_masked_indices_list[k]]
@@ -295,8 +285,8 @@ def data_structure(dict_param, data_continous_ratemaps, data_binned_glm, path_to
 # import a csv file with the same structure of the cells
 # ? TODO: compare the strings to be sure they are correct?
 
-def data_structure_multicov(path_analysis_dir, path_info_dir, dict_param, glmhmms_ista=None, process_neur=None,
-                            inputs_list=None, dict_objects=None, file_predictors=None):
+def data_structure_multicov(path_analysis_dir, path_info_dir, dict_param, predictors_name_list=None, glmhmms_ista=None,
+                            process_neur=None, inputs_list=None, dict_objects=None, file_predictors=None):
     predictors_name_list = ['Q Ego2_head_pitch_2nd_der', 'Q Ego2_head_pitch', 'Q Ego2_head_pitch_1st_der',
                             'L Ego3_Head_pitch_1st_der', 'L Ego3_Head_pitch_2nd_der', 'L Ego3_Head_pitch']
     print(predictors_name_list)
@@ -308,7 +298,7 @@ def data_structure_multicov(path_analysis_dir, path_info_dir, dict_param, glmhmm
         index_1_mask = np.where(test_mask == 1)[0]
         masked_values.append(list(index_1_mask))
 
-    # remove the fir st if and put an assert to suggest the other function
+    # remove the first if and put an assert to suggest the other function
     if M - 1 == 1:
         tot_mask_indices = masked_values[0]
     elif M - 1 == 2:

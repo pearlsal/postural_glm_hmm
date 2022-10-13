@@ -14,6 +14,17 @@ First a description of the main parameters of the model and its notation:
 - transistion_type == it select the type of transition. In practice, it selects the method and the constraint on the transition probabilities
 - optim_method == optimization method to fit the log-likelihood and transition probability (in addition to the initial probabilities on the states)
 
+Second a description of the constraints in the model in order to perform the inference:
+
+1) The number of dimensions is the first constraint you have to take into consideration. In our data context, the spike trains are quasi-binary and thus the most suitable distribution is the Bernoulli one. Nonetheless in the implementation of the ssm package the option for Bernoulli observation doesn't allow for time dependent predictors but it permits a population study and gives back the mean firing rate as parameter. If you want to use the time dependent predicotrs, the only viable option is the "input_driven" observation which allows only the treatment of independent neurons (thus each neuron log-likelihood is sum togehter if more neurons are introduced in the inference).
+2) The number of categorical observation is necessary when you are using the input driven option in order to constraint the possible outcome of the neural response. Not necessary if you use the Bernoulli observation. 
+3) Number of independent neurons you want to include in the inference (they are treated independently).
+4) The minimum number of states is 2 (otherwise, using time dependent predictor in a single state would correspond to the GLM). A good rule of thumbs is tso start with 3 states.
+5) The observation option are needed to define the prior on the neural response. An effective and studied way to include the time-dependent predictor is the "input_driven_obs".
+6) The transition option attain the constraint to use in the probabilities transition matrix computation. The main options are: "recurrent", "inputdriven",  "sticky", "standard".
+7) The optimization method for the option mentioned is the Expectation-Maximization ("em").
+
+
 Below a general overview of the theory.
 
 ...
