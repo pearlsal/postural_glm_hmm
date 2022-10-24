@@ -8,9 +8,9 @@ The procedure of inference is carried out with a Bayesian approach (see "additio
 
 COMMANDS TO RUN:
 Install git on your machine using the link https://git-scm.com/download/win and following the instructions. Remember to install the second option in the Git setup ("Use Git from the Windows Command Prompt").
-Create the folder of your project (e.g. glmhmm_project). Open the powershell and type "git clone https://github.com/teo-fantacci/postural_glm_hmm.git". 
+Create the folder of your project (e.g. glmhmm_project). Open the powershell and type "git clone https://github.com/teo-fantacci/postural_glm_hmm.git". Type "cd postural_glm_hmm".
 First, you have to install the environment using the command: "conda env create -f environment.yml" and then activate it typing "conda activate glmhmmbeta".
-Second, type "cd ssm", then "pip install numpy cython" and finally "pip install -e ." to install completely the ssm package. 
+Second, type "cd ssm", then "pip install numpy cython" and finally "pip install -e ." to install completely the ssm package. Type "cd .." to move to the parent folder. 
 Assuming you have the pickle file obtained from "prepare4ratemap()" and from "prepare_data4glms()" functions of Jingyi's pipeline and you store them in the folder named "data", change the name of the file to the corresponding animal and you are ready to run the "main.py".
 The options of the package are multiple, but the combinations of the parameters are constrained in the ssm. At the current state of development, the "main.py" is an example containing one of the allowed parameters' structures.
 

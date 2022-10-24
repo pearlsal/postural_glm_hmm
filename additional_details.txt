@@ -1,4 +1,4 @@
-Here you can find a more detailed explanation of the model and its implementation.
+Here you can find a more detailed explanation.
 
 
 First a description of the main parameters of the model and its notation:
@@ -19,17 +19,16 @@ Second a description of the constraints in the model in order to perform the inf
 1) The number of dimensions is the first constraint you have to take into consideration. In our data context, the spike trains are quasi-binary and thus the most suitable distribution is the Bernoulli one. Nonetheless in the implementation of the ssm package the option for Bernoulli observation doesn't allow for time dependent predictors but it permits a population study and gives back the mean firing rate as parameter. If you want to use the time dependent predicotrs, the only viable option is the "input_driven" observation which allows only the treatment of independent neurons (thus each neuron log-likelihood is sum togehter if more neurons are introduced in the inference).
 2) The number of categorical observation is necessary when you are using the input driven option in order to constraint the possible outcome of the neural response. Not necessary if you use the Bernoulli observation. 
 3) Number of independent neurons you want to include in the inference (they are treated independently).
-4) The minimum number of states is 2 (otherwise, using time dependent predictor in a single state would correspond to the GLM). A good rule of thumbs is tso start with 3 states.
+4) The minimum number of states is 2 (otherwise, using time dependent predictors in a single state corresponds to the GLM). A good rule of thumbs is tso start with 3 states.
 5) The observation option are needed to define the prior on the neural response. An effective and studied way to include the time-dependent predictor is the "input_driven_obs".
 6) The transition option attain the constraint to use in the probabilities transition matrix computation. The main options are: "recurrent", "inputdriven",  "sticky", "standard".
-7) The optimization method for the option mentioned is the Expectation-Maximization ("em").
+7) The optimization method for the options mentioned is the Expectation-Maximization ("em").
 
-
-Below a general overview of the theory.
-
-...
-...
-
+Note! If predictors contains "nans", they are removed and synchronized with the neural response. The fraction of missing points is printed and saved in the information folder. 
+Note about predictors: in this form of the package you can use only predicotrs that haven't sampled all the space of allowed values (given by boundaries).
+Example of forbidden predictor is "Body_direction".
 
 References for theory:
-L. Paniski; Statistical analysis of neural data: Discrete-space hidden Markov models; http://www.stat.columbia.edu/∼liam
+Paninski, Liam. Statistical analysis of neural data: Discrete-space hidden Markov models. (2009)  (type the citation on your search engigne, the original page cannot be found).
+Ashwood, Zoe C., et al. "Mice alternate between discrete strategies during perceptual decision-making." Nature Neuroscience 25.2 (2022): 201-212.
+Calhoun, Adam J., Jonathan W. Pillow, and Mala Murthy. "Unsupervised identification of the internal states that shape natural behavior." Nature neuroscience 22.12 (2019): 2040-2049.

@@ -2,58 +2,92 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 import itertools
+import pickle
+from test_beta_package.utils_glm_hmm import *
+
 
 # ####-----Plotting section, still with some part of inference output processing-----#####
 
-def log_like_evolution_per_states(fit_ll_states_list, dict_param, general_folder):
-    # ##All log-likelihood time evolution grouped by color###
 
-    dpi = 120  # dots per inch give the size of the picture and indirectly #! check the one in the papers
-    fcc = 'w'  # white background
-    ec = 'k'  # black frame
-    post_description_savefig = f"numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
-                               f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
-                               f"_tot_pred={dict_param['num_predicotrs']}_obs={dict_param['observation_type']}" \
-                               f"_trans={dict_param['transistion_type']}_method={dict_param['optim_method']}" \
-                               f"_KAV_s3_distal.pdf"
+def log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=None, dict_param=None,
+                                  fit_ll_states_list=None, dict_objects=None, dict_processed_objects=None,
+                                  dictionary_information=None):
+    """
+    All log-likelihoods time evolution grouped by color.
+    DONE
+    """
 
-    # color map to have the most distant colours for overlap trajectories
-    colormap_size = np.linspace(0, 1, len(dict_param['list_states']))
-    for i in range(len(colormap_size)):
-        colors_states = cmx.jet(colormap_size)
-    name_states = [str(x) + "_states" for x in dict_param['list_states']]
+    if (dict_processed_objects and dict_objects and dictionary_information) is not None:
+        with open(path_analysis_dir + 'dict_processed_objects.pkl', 'rb') as handle:
+            dict_processed_objects = pickle.load(handle)
+        fit_ll_states_list = dict_processed_objects["fit_ll_states_list"]
+
+        with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+        plots_dir = dict_objects["path_plots_list"][0]
+
+        with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
+            dict_param = pickle.load(handle)
+
+        with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
+            dict_info = pickle.load(handle)
+            animal_name = dict_info['animal_name']
+
+
+    dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
+
+    print(len(fit_ll_states_list), len(fit_ll_states_list[0]))
 
     fig = plt.figure(figsize=(7, 5), dpi=dpi, facecolor=fcc, edgecolor=ec)
     for i in range(len(dict_param['list_states'])):
-        for j in range(dict_param['num_predicotrs']):  # #!!cluster with lw or color the states and the neurons
+        colors_states = colors_number(colors_number=dict_param['list_states'][i])
+        name_states = [str(x) + "_states" for x in dict_param['list_states']]
+        for j in range(dict_param['num_predictors']):  # #!!cluster with lw or color the states and the neurons
             plt.plot(fit_ll_states_list[i][j], color=colors_states[i])  # ,color=CB_color_cycle[i]
-        plt.plot(fit_ll_states_list[i][dict_param['num_predicotrs']-1], color=colors_states[i], label=name_states[i])
+        plt.plot(fit_ll_states_list[i][dict_param['num_predictors']-1], color=colors_states[i], label=name_states[i])
     plt.legend(loc="best", fontsize=10)
     plt.xlabel("EM Iteration")
     plt.xlim(0, dict_param['N_iters'])
     plt.ylabel("Log-likelihood")
     plt.suptitle("Log-likelihood evolution (EM)")
     plt.tight_layout()
-    plt.savefig(general_folder + f"loglikelihood_time_evolution_" + post_description_savefig, bbox_inches="tight",
+    plt.savefig(plots_dir + f"loglikelihood_time_evolution_" + post_description_savefig, bbox_inches="tight",
                 dpi=dpi)
+    # plt.switch_backend('Qt5Agg')
     plt.show()
 # -------------------------------------------------------------------------------------------------------------------- #
 
 # TODO: generalize. This function shows all the time length thus condition on the product.
 #TODO: create another function to visualize from start to end ([start:end])
 
-def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_name_list, data_continous_ratemaps,
-                                             tot_masked_indices_list, T_list, dict_param, general_folder):
-    # ##Posterior probabilities plot comparison with a predictor###
+def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, data_continous_ratemaps,
+                                             posterior_probs_list,
+                                             predictors_name_list, tot_masked_indices_list, T_list,
+                                             plots_dir=None,
+                                             dict_posterior=None, dict_param=None,
+                                  dict_processed_objects=None,
+                                  dictionary_information=None):
+    """
+    Posterior probabilities plot comparison with a predictor
+    """
 
-    dpi = 120  # dots per inch give the size of the picture and indirectly #! check the one in the papers
-    fcc = 'w'  # white background
-    ec = 'k'  # black frame
-    post_description_savefig = f"numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
-                               f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
-                               f"_tot_pred={dict_param['num_predicotrs']}_obs={dict_param['observation_type']}" \
-                               f"_trans={dict_param['transistion_type']}_method={dict_param['optim_method']}" \
-                               f"_KAV_s3_distal.pdf"
+
+    if (dict_processed_objects and dict_posterior and dictionary_information) is not None:
+        with open(path_analysis_dir + 'dict_processed_objects.pkl', 'rb') as handle:
+            dict_processed_objects = pickle.load(handle)
+
+        with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+        plots_dir = dict_objects["path_plots_list"][0]
+
+        with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
+            dict_param = pickle.load(handle)
+
+        with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
+            dict_info = pickle.load(handle)
+            animal_name = dict_info['animal_name']
+
+    dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
     sess_id = 0  # session id; can choose any index between 0 and num_sess-1
     model_id = 1  # number of state in the model taken from Klist (0=>2 states)
@@ -77,7 +111,7 @@ def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_na
     start_time_list = np.arange(0, T - time_interval, time_interval)
     end_time_list = np.arange(time_interval, T, time_interval)
 
-    if np.amin(normalized_check_cov) < 0:  # #not necessry np.amin (maybe faster without)
+    if np.amin(normalized_check_cov) < 0:
         ylimin = -1.01
         yticks = [-1, -0.5, 0, 0.5, 1]
     else:
@@ -105,7 +139,7 @@ def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_na
             plt.ylabel("p(state)", fontsize=15)
             plt.title("Posterior probability states")
     plt.tight_layout()
-    plt.savefig(general_folder + f"posterior_probability_" + post_description_savefig, bbox_inches="tight", dpi=dpi)
+    plt.savefig(plots_dir + f"posterior_probability_" + post_description_savefig, bbox_inches="tight", dpi=dpi)
     plt.show()
 
 # posterior list struture
@@ -117,25 +151,35 @@ def posterior_prob_per_states_with_predictor(posterior_probs_list, predictors_na
 # -------------------------------------------------------------------------------------------------------------------- #
 
 # TODO: generalize for different states
-def states_occupancies_histogram(plots_folder, dict_param, states_occupancies=None, file_states_occup=None):
+# TODO: impose
+def states_occupancies_histogram(path_analysis_dir, path_info_dir, dict_param=None, file_states_occup=None,
+                                 states_occupancies=None):
+    """
+    Plot the histogram of cumulative occupancy for each state
+    DONE
+    """
+    if (file_states_occup and dict_param) is not None:
+        with open(path_analysis_dir + 'dict_states_occupancies.pkl', 'rb') as handle:
+            dict_states_occupancies = pickle.load(handle)
+        states_occupancies = dict_states_occupancies["states_occupancies"]
+        print(f"state of occupancy is {states_occupancies}")
 
-    colormap_size = np.linspace(0, 1, states_occupancies.shape[0])
-    for i in range(len(colormap_size)):
-        colors_states = cmx.jet(colormap_size)
-    # name_states = [str(x) + "_states" for x in np.arange(1, state_occupancies.shape[0] +1)
-    # use name states in the ticks when automatized?
+        with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
+            dict_param = pickle.load(handle)
 
-    dpi = 120  # dots per inch give the size of the picture #! check the one in the papers
-    fcc = 'w'  # white background
-    ec = 'k'  # black frame
+        with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            plots_dir = dict_objects['path_plots_list'][0]
 
-    post_description_savefig = f"numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
-                               f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
-                               f"_tot_pred={dict_param['num_predicotrs']}_obs={dict_param['observation_type']}" \
-                               f"_trans={dict_param['transistion_type']}_method={dict_param['optim_method']}" \
-                               f"_KAV_s3_distal.pdf"
+        with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
+            dict_info = pickle.load(handle)
+            animal_name = dict_info['animal_name']
 
-    fig = plt.figure(figsize=(2, 2.5), dpi=80, facecolor=fcc, edgecolor=ec)
+
+    dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
+    colors_states = colors_number(colors_number=3)
+
+    fig = plt.figure(figsize=(2, 2.5), dpi=dpi, facecolor=fcc, edgecolor=ec)
     for z, occ in enumerate(states_occupancies):
         plt.bar(z, occ, width=0.8, color=colors_states[z])
     plt.ylim((0, 1))
@@ -144,21 +188,34 @@ def states_occupancies_histogram(plots_folder, dict_param, states_occupancies=No
     plt.xlabel('state', fontsize=15)
     plt.ylabel('frac. occupancy', fontsize=15)
     plt.tight_layout()
-    plt.savefig(plots_folder + f"states_occupancies_histogram" + post_description_savefig, bbox_inches="tight", dpi=dpi)
+    plt.savefig(plots_dir + f"states_occupancies_histogram_" + post_description_savefig, bbox_inches="tight", dpi=dpi)
     plt.show()
 # -------------------------------------------------------------------------------------------------------------------- #
 
-def transition_prob_matrix(plots_folder, dict_param, glmhmms_ista):
+def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, dict_param=None,
+                           dict_processed_objects=None):
+    """
+    Plot the probability transition matrix
+    DONE
+    """
 
-    dpi = 120  # dots per inch give the size of the picture #! check the one in the papers
-    fcc = 'w'  # white background
-    ec = 'k'  # black frame
+    if (dict_processed_objects and dict_param) is not None:
+        with open(path_analysis_dir + 'dict_processed_objects.pkl', 'rb') as handle:
+            dict_processed_objects = pickle.load(handle)
+        glmhmms_ista = dict_processed_objects["glmhmms_ista"]
 
-    post_description_savefig = f"numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
-                               f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
-                               f"_tot_pred={dict_param['num_predicotrs']}_obs={dict_param['observation_type']}" \
-                               f"_trans={dict_param['transistion_type']}_method={dict_param['optim_method']}" \
-                               f"_KAV_s3_distal.pdf"
+        with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
+            dict_param = pickle.load(handle)
+
+        with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            plots_dir = dict_objects['path_plots_list'][0]
+
+        with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
+            dict_info = pickle.load(handle)
+            animal_name = dict_info['animal_name']
+
+    dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
     comp_istance = 0
     num_states = glmhmms_ista[comp_istance].transitions.log_Ps.shape[0]
@@ -178,28 +235,23 @@ def transition_prob_matrix(plots_folder, dict_param, glmhmms_ista):
     plt.ylim(num_states - 0.5, -0.5)
     plt.title("recovered", fontsize=15)
     plt.tight_layout()
-    plt.savefig(plots_folder + f"transition_prob_matrix" + post_description_savefig, bbox_inches="tight", dpi=dpi)
+    plt.savefig(plots_dir + f"transition_prob_matrix" + post_description_savefig, bbox_inches="tight", dpi=dpi)
     plt.show()
 # -------------------------------------------------------------------------------------------------------------------- #
 
-def weights_distribution_histogram(plots_folder, dict_param, inf_weight_dict):
+def weights_distribution_histogram(path_analysis_dir, path_info_dir):
     """
     Histogram of parameters distribution. Divided by predictors and bias term, plus combined distribution
     """
 
-    dpi = 120  # dots per inch give the size of the picture and indirectly #! check the one in the papers
-    fcc = 'w'  # white background
-    ec = 'k'  # black frame
-    post_description_savefig = f"numsess={dict_param['num_indep_neurons']}_max_iters={dict_param['N_iters']}" \
-                               f"_tolerance={dict_param['tolerance']}_numpredict={1}" \
-                               f"_tot_pred={dict_param['num_predicotrs']}_obs={dict_param['observation_type']}" \
-                               f"_trans={dict_param['transistion_type']}_method={dict_param['optim_method']}" \
-                               f"_KAV_s3_distal.pdf"
+    inf_weight_dict, plots_dir, dict_param = dict_transformed_inferred_weights(path_analysis_dir, path_info_dir, dict_param=0, dict_processed_objects=0)
+
+    dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
     flat_bias_w = []
     flat_predictor_w = []
     for key in inf_weight_dict.keys():
-        for i in range(dict_param['num_predicotrs']):
+        for i in range(dict_param['num_predictors']):
             flat_predictor_w.append(list(inf_weight_dict[key][i][:,0,0]))
             flat_bias_w.append(inf_weight_dict[key][i][:,0,1])
     flat_predictor_w = list(itertools.chain.from_iterable(flat_predictor_w))
@@ -219,7 +271,7 @@ def weights_distribution_histogram(plots_folder, dict_param, inf_weight_dict):
         plt.ylabel("Occurrences", fontsize = 10)
         plt.title(titles_histo[i])
     plt.tight_layout()
-    plt.savefig(plots_folder + f"weights_distribution_histogram" + post_description_savefig,bbox_inches="tight",dpi=dpi)
+    plt.savefig(plots_dir + f"weights_distribution_histogram" + post_description_savefig,bbox_inches="tight",dpi=dpi)
     plt.show()
 # -------------------------------------------------------------------------------------------------------------------- #
 
@@ -236,7 +288,7 @@ def weights_distribution(dict_param, threshold_diff_pred=0.1):
     ###weights comparison and predictors selection###
     ##!!change all the diff_w_keys with key_states and check!!##
 
-    colormap_size = np.linspace(0, 1, dict_param['num_predicotrs'] +1)  # color map to have the most distant colours of the colormap
+    colormap_size = np.linspace(0, 1, dict_param['num_predictors'] +1)  # color map to have the most distant colours of the colormap
     for i in range(len(colormap_size)):
         colors = cmx.jet(colormap_size)
 
@@ -244,8 +296,8 @@ def weights_distribution(dict_param, threshold_diff_pred=0.1):
     key_states = [str(x) + "_states" for x in dict_param['list_states']]  # no?#!use it in the diff dictionary
     for i in range(dict_param['num_states']):
         inf_weight_dict[key_states[i]] = []
-        for j in range(dict_param['num_predicotrs']):
-            inf_weight_dict[key_states[i]].append(sigmoid(glmhmms_ista[(i * (dict_param['num_predicotrs'])) + j].observations.params))
+        for j in range(dict_param['num_predictors']):
+            inf_weight_dict[key_states[i]].append(sigmoid(glmhmms_ista[(i * (dict_param['num_predictors'])) + j].observations.params))
 
             # string for labels#
     diff_w_keys = ["state_" + str(x) for x in
@@ -264,7 +316,7 @@ def weights_distribution(dict_param, threshold_diff_pred=0.1):
                                                                                   j]))]  # do it better with right string  # create the item of the dictionary with the right number of states to accept the corresponding weights
         if j == 0:  # make it automatic for the number of different model (num states)
             ticks_points = np.linspace(0.05, 0.95, factorial_perm(dict_param['list_states'][j]) + dict_param['list_states'][j])
-            for i in range(dict_param['num_predicotrs']):
+            for i in range(dict_param['num_predictors']):
                 diff_weights_dict[diff_w_keys[j]][0].append(abs(
                     inf_weight_dict[key_states[j]][i][0, 0, 0] - inf_weight_dict[key_states[j]][i][
                         1, 0, 0]))  # taking the difference between same weight but different states
@@ -283,7 +335,7 @@ def weights_distribution(dict_param, threshold_diff_pred=0.1):
             plt.legend(loc="best", fontsize=8)
         elif j == 1:
             ticks_points = np.linspace(0.05, 0.95, factorial_perm(dict_param['list_states'][j]) + dict_param['list_states'][j])
-            for i in range(dict_param['num_predicotrs']):
+            for i in range(dict_param['num_predictors']):
                 diff_weights_dict[diff_w_keys[j]][0].append(
                     abs(inf_weight_dict[key_states[j]][i][0, 0, 0] - inf_weight_dict[key_states[j]][i][1, 0, 0]))
                 diff_weights_dict[diff_w_keys[j]][1].append(
@@ -320,7 +372,7 @@ def weights_distribution(dict_param, threshold_diff_pred=0.1):
     best_pred_w = {}
     for i in range(dict_param['num_states']):  # works for 2  #!improve
         best_pred_w[diff_w_keys[i]] = []
-        for j in range(dict_param['num_predicotrs']):
+        for j in range(dict_param['num_predictors']):
             best_pred_w[diff_w_keys[i]].append(
                 max([diff_weights_dict[diff_w_keys[i]][x][j] for x in range(factorial_perm(dict_param['list_states'][i]))]))
 
