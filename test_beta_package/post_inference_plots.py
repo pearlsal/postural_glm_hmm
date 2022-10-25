@@ -265,7 +265,7 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
             plt.plot(normalized_check_cov[start_time_list[(j * plotrows) + i]:end_time_list[(j * plotrows) + i]], c="k",
                      label=f"{name_check_covariate}")
             for k in range(num_states):
-                plt.plot(posterior_probs_list[model_id][index_cov_check][0]
+                plt.plot(posterior_probs_list[model_id][0][index_cov_check][0]
                          [start_time_list[(j * plotrows) + i]:end_time_list[(j * plotrows) + i], k],
                          label=f"State{k}", lw=1,
                          color=colors[k], linestyle="--")
