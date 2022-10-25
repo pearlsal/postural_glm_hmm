@@ -54,6 +54,6 @@ posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, data_
 states_occupancies_histogram(path_analysis_dir, path_info_dir, dict_param=dict_param,
                              states_occupancies=states_occupancies)
 
-transition_prob_matrix((path_analysis_dir, path_info_dir, glmhmms_ista=glmhmms_ista, dict_param=dict_param)
+transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista = glmhmms_ista, dict_param = dict_param)
 
 weights_distribution_histogram(path_analysis_dir, path_info_dir)

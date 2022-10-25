@@ -27,12 +27,12 @@ def log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=No
             dict_objects = pickle.load(handle)
         plots_dir = dict_objects["path_plots_list"][0]
 
-        with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
-            dict_param = pickle.load(handle)
+    with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
+        dict_param = pickle.load(handle)
 
-        with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
-            dict_info = pickle.load(handle)
-            animal_name = dict_info['animal_name']
+    with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
+        dict_info = pickle.load(handle)
+        animal_name = dict_info['animal_name']
 
     dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
@@ -197,21 +197,22 @@ def states_occupancies_histogram(path_analysis_dir, path_info_dir, dict_param=No
 
 # -------------------------------------------------------------------------------------------------------------------- #
 
-
+# TODO: generalize
 def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, data_continous_ratemaps,
                                              posterior_probs_list,
                                              predictors_name_list, tot_masked_indices_list, T_list,
                                              plots_dir=None,  dict_param=None,
                                              dict_posterior=None,
-                                             dict_processed_objects=None,
-                                             dictionary_information=None):
+                                             dict_objects=None,
+                                             dictionary_information=None, name_check_covariate='B Speeds'):
     """
     Posterior probabilities plot comparison with a predictor.
     """
 
-    if (dict_processed_objects and dict_posterior and dictionary_information) is not None:
+    if (dict_objects and dict_posterior and dictionary_information) is not None:
         with open(path_analysis_dir + 'dict_processed_objects.pkl', 'rb') as handle:
-            dict_processed_objects = pickle.load(handle)
+            dict_posterior_objects = pickle.load(handle)
+            posterior_probs_list = dict_posterior_objects['posterior_probs_list']
 
         with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
             dict_objects = pickle.load(handle)
@@ -226,10 +227,12 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
 
     dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
-    sess_id = 0  # session id; can choose any index between 0 and num_sess-1
-    model_id = 1  # number of state in the model taken from Klist (0=>2 states)
+
+    # TODO: use as input the index of the state you want to analyze
+    model_id = 0  # number of state in the model taken from Klist (0=>2 states)
     index_istance_struct = 0  # index wrt the structure of the glmhmm istances
-    num_states = 3
+    num_states = 2
+    # TODO: use the name of the predictor and match it
     index_cov_check = 0
     name_check_covariate = predictors_name_list[index_cov_check]
     print(name_check_covariate)
@@ -238,13 +241,12 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
     print(f"max value is {norm_factor_check_cov}")
     normalized_check_cov = np.divide(check_covariate[tot_masked_indices_list[index_cov_check]], norm_factor_check_cov)
     print(normalized_check_cov)
-    colors = ['r', 'b', 'y', 'g']
-    # ls = ["--", ":", "-."]
-    lw = [1, 1, 1, 1]
+    colors = colors_number(num_states+1)
+
     T = T_list[index_istance_struct]
-    plotrows = 5
-    plotcolumns = 5
-    time_interval = 4500
+    plotrows = 4
+    plotcolumns = 4
+    time_interval = 4000
     start_time_list = np.arange(0, T - time_interval, time_interval)
     end_time_list = np.arange(time_interval, T, time_interval)
 
@@ -263,9 +265,9 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
             plt.plot(normalized_check_cov[start_time_list[(j * plotrows) + i]:end_time_list[(j * plotrows) + i]], c="k",
                      label=f"{name_check_covariate}")
             for k in range(num_states):
-                plt.plot(posterior_probs_list[model_id][sess_id][index_cov_check][0]
+                plt.plot(posterior_probs_list[model_id][index_cov_check][0]
                          [start_time_list[(j * plotrows) + i]:end_time_list[(j * plotrows) + i], k],
-                         label=f"State{k}", lw=lw[k],
+                         label=f"State{k}", lw=1,
                          color=colors[k], linestyle="--")
 
             plt.ylim((ylimin, 1.01))

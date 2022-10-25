@@ -121,7 +121,7 @@ def inference_section_multi_predictor(path_analysis_dir, path_info_dir, dict_par
 
 # TODO: check if it is better save the posterior in nested dict and not list
 def posterior_prob_process(path_info_dir, path_analysis_dir, dict_param=None, glmhmms_ista=None, process_neur=None,
-                           inputs_list=None, dict_processed_objects=None):
+                           inputs_list=None, dict_processed_objects=None, multi_predictor=None):
     """
     This function computes the posterior probability for each model, state and neuron.
     The objects are saved in a pickle file for further processing in case the inference was time-consuming.
@@ -140,29 +140,51 @@ def posterior_prob_process(path_info_dir, path_analysis_dir, dict_param=None, gl
         with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
             dict_param = pickle.load(handle)
 
-    for i in range(len(dict_param['list_states'])):
-        posterior_probs_list.append([])  # structure for different states
-        for k in range(dict_param['num_indep_neurons']):
-            posterior_probs_list[i].append([])  # structure for different neurons
-            for j in range(dict_param['num_predictors']):
-                posterior_probs = [glmhmms_ista[i * ((dict_param['num_predictors']) * dict_param['num_indep_neurons']) +
-                                                (k * dict_param['num_predictors']) + j].
-                                       expected_states(data=data, input=inpt)[0]
-                                   # way to get the posterior probability for each state
-                                   for data, inpt
-                                   in zip([process_neur[
-                                               i * ((dict_param['num_predictors']) * dict_param['num_indep_neurons']) +
-                                               (k * dict_param['num_predictors']) + j]], [inputs_list[j][0]])]
-                posterior_probs_list[i][k].append(posterior_probs)
-    comp_time_posterior = time.time() - startclock
-    print(f"Total computation time for posterior probability is {comp_time_posterior}")
+    print(f"the input form is {inputs_list}")
 
-    dict_posterior = {"posterior_probs_list": posterior_probs_list}
+    if multi_predictor is None:
+        for i in range(len(dict_param['list_states'])):
+            posterior_probs_list.append([])  # structure for different states
+            for k in range(dict_param['num_indep_neurons']):
+                posterior_probs_list[i].append([])  # structure for different neurons
+                for j in range(dict_param['num_predictors']):
+                    posterior_probs = [glmhmms_ista[i * ((dict_param['num_predictors']) * dict_param['num_indep_neurons']) +
+                                                    (k * dict_param['num_predictors']) + j].
+                                           expected_states(data=data, input=inpt)[0]
+                                       # way to get the posterior probability for each state
+                                       for data, inpt
+                                       in zip([process_neur[
+                                                   i * ((dict_param['num_predictors']) * dict_param['num_indep_neurons']) +
+                                                   (k * dict_param['num_predictors']) + j]], [inputs_list[j][0]])]
+                    posterior_probs_list[i][k].append(posterior_probs)
+        comp_time_posterior = time.time() - startclock
+        print(f"Total computation time for posterior probability is {comp_time_posterior}")
 
-    data_file_name = 'dict_posterior.pkl'
-    a_file = open(path_analysis_dir + data_file_name, "wb")
-    pickle.dump(dict_posterior, a_file)
-    a_file.close()
+        dict_posterior = {"posterior_probs_list": posterior_probs_list}
+
+        data_file_name = 'dict_posterior.pkl'
+        a_file = open(path_analysis_dir + data_file_name, "wb")
+        pickle.dump(dict_posterior, a_file)
+        a_file.close()
+
+    else:
+        for i in range(len(dict_param['list_states'])):
+            posterior_probs_list.append([])  # structure for different states
+            posterior_probs = [
+                glmhmms_ista[i].expected_states(data=data, input=inpt)[0]
+                # way to get the posterior probability for each state
+                for data, inpt
+                in zip([process_neur[0]], [inputs_list[0]])]
+            posterior_probs_list[i].append(posterior_probs)
+        comp_time_posterior = time.time() - startclock
+        print(f"Total computation time for posterior probability is {comp_time_posterior}")
+
+        dict_posterior = {"posterior_probs_list": posterior_probs_list}
+
+        data_file_name = 'dict_posterior_multi_predictor.pkl'
+        a_file = open(path_analysis_dir + data_file_name, "wb")
+        pickle.dump(dict_posterior, a_file)
+        a_file.close()
 
     return posterior_probs_list
 

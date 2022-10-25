@@ -347,8 +347,8 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
                 # create a folder for the particular case (model, neuron and predictor) with .txt description
                 print(f"!Fraction missing points is {miss_points_ratio} for the model {i} neuron {j} and predictor {k}")
                 name_folder = f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}_" \
-                              f"numsess={dict_param['num_indep_neurons']}" + f"_max_iters={dict_param['N_iters']}_" \
-                              f"tolerance={dict_param['tolerance']}" + f"_pred={1}" + \
+                              + f"_max_iters={dict_param['N_iters']}_" \
+                              + f"_pred={1}" + \
                               f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}/"
                 path_current_pred_dir = plots_folder + "/" + name_folder
                 if not os.path.exists(path_current_pred_dir):
@@ -428,7 +428,7 @@ def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_p
         inpts[:, :, i] = data_continous_ratemaps['possiblecovariates'][f"{best_predictors_name_df.iloc[i, 0]}"][
             tot_mask_indices]
     inpts = list(inpts)  # correct format for ssm
-    print(f"the inputs format is {inpts}")
+
     name_upper_folder = f"{dict_param['animal_name']}_multipredictor_{date}_run/"
     if not os.path.exists(path_multi_pred_dir + name_upper_folder):
         os.makedirs(path_multi_pred_dir + name_upper_folder)
@@ -449,8 +449,8 @@ def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_p
         # create a folder for the particular case (model, neuron and predictor) with .txt description###
         print(f"!Fraction missing points is {miss_points_ratio} for the model {i}")
 
-        name_folder = f"multicov_{dict_param['animal_name']}_states={dict_param['list_states'][i]}_neur={data_continous_ratemaps['cell_names'][cell_index[0]]}" \
-                      + f"_max_iters={dict_param['N_iters']}_tol={dict_param['tolerance']}" + \
+        name_folder = f"multicov_{dict_param['animal_name']}_states={dict_param['list_states'][i]}" \
+                      + f"_max_iters={dict_param['N_iters']}" + \
                       f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}/"
         path_current_inference = plots_folder + name_folder
         if not os.path.exists(path_current_inference):
