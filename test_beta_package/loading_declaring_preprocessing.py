@@ -5,13 +5,12 @@ import datetime
 import ssm
 import pandas as pd
 from functools import reduce
-import itertools
 from ratemaps import *
 from spikestats.process_data import *
 from spikestats.toolkits import *
 
 """
-With this module you can create the data structure, formatting data, generate the istances of the class and save all 
+With this module you can create the data structure, formatting data, generate the instances of the class and save all 
 quantities for further analysis
 """
 
@@ -204,10 +203,9 @@ def dict_parameters_hmm(path_info_dir, animal_name, num_dimen, num_categ_obs=2, 
     The user has to insert manually the allowed value for the specific type of inference.
     The constraint description is in the file 'additional_details.txt' in the package folder
     """
-    # TODO: put assert to check that the number of neurons is between 1 and N(tot number of neurons from length of cell_names)
     # TODO: put assert for the rest of the parameters
-    assert num_dimen.dtype==int, f"number of dimension has to be an integer"
-    assert threshold_diff_pred>0 and threshold_diff_pred<1, f"threshold has to be greater than 0 and smaller than 1"
+    assert type(num_dimen)==int, f"number of dimension has to be an integer"
+    # assert threshold_diff_pred>0 and threshold_diff_pred<1, f"threshold has to be greater than 0 and smaller than 1"
 
     dict_param = {}
 
@@ -262,8 +260,8 @@ def cells_selection_random(path_info_dir, data_continous_ratemaps, data_binned_g
 def cells_selection_manual(path_info_dir, data_continous_ratemaps, data_binned_glm, dict_param, csv_file_cells):
     """
     Write the full name of the file including .csv
-    CSV file structure: only one column with cells' names on the rows (e.g. 'imec0_cl0000_ch000'). Remember quotes or no?
-    The default location is in the path_info_dir, so that the recall is automatized. Remember to insert there
+    CSV file structure: only one column with cells' names on the rows (e.g. imec0_cl0000_ch000).
+    Remember to avoid qoutes in the entries of the csv file
     """
 
     cell_names_array = np.array(data_continous_ratemaps['cell_names'])
@@ -271,7 +269,6 @@ def cells_selection_manual(path_info_dir, data_continous_ratemaps, data_binned_g
     cells_index = []
     for i in range(dict_param['num_indep_neurons']):
         cells_index.append(np.where(cell_names_array == data_read.iloc[i, 0])[0][0])
-
     tot_time = len(data_binned_glm['spk_mat'][0])
 
     text_content = f"ID cells selected for this inference is {data_read} and the corresponding indices are {cells_index}"
@@ -284,32 +281,25 @@ def cells_selection_manual(path_info_dir, data_continous_ratemaps, data_binned_g
 
 
 def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_continous_ratemaps, data_binned_glm,
-                   dict_param, tot_time, cell_index, predictors_name_list, predictor_file=None):
+                   dict_param, tot_time, cell_index, predictors_name_list=None, predictor_file=None):
     """
     Main function to process the data (neurons' and predictors' time series)
     The "predictor_file" has to be in "info_dir"
     """
+    date = datetime.date.today()
+
     if predictor_file is not None:
         predictors_df = pd.read_csv(path_info_dir + predictor_file)
         print(f"the iloc approach is {predictors_df.iloc[:,0]}")
-        print(f"the length of df is {len(predictors_df)}")
-        predictors_name_list = [predictors_df.iloc[x,0].strip("'") for x in range(len(predictors_df))]
-        print(f"test list comprehension is {predictors_name_list}")
-        #predictors_name_list = predictors_df.astype(str).values.tolist()
-        #print(f"test string is {predictors_name_list}")
-        #predictors_name_list = list(itertools.chain.from_iterable(predictors_df.values.tolist()))
-        #predictors_name_list = map(str.strip('"'), predictors_name_list)
-        print(predictors_name_list)
+        # predictors_name_list = [predictors_df.iloc[x,0].strip("'") for x in range(len(predictors_df))]
+        predictors_name_list = [predictors_df.iloc[x,0] for x in range(len(predictors_df))]
+        print(f"loading file I obtain {predictors_name_list}")
 
-
-
-    glmhmms_ista = []  # save the istances for the hmm class
+    glmhmms_ista = []  # save the instances for the hmm class
     T_list = []  # masked total time
     tot_masked_indices_list = []  # array of the masked indices
     path_plots_list = []  # to save single predictor inference plots
     inputs_list = []  # post-processed predictors list
-
-    date = datetime.date.today()
 
     name_upper_folder = f"{dict_param['animal_name']}_singlepredictor_{date}_run/"
     if not os.path.exists(path_single_pred_dir + name_upper_folder):
@@ -339,9 +329,9 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
         inpts = list(inpts)  # convert inpts to correct format   #in partiular if you have different length of the time
         inputs_list.append(inpts)
 
-    # TODO: look for redundancy and modify it accordingly
-    # #!create the structure for multiple neurons, thus a nested list for each first loop!##
-    process_neur = []  # requested list structure for multiple neurons with sessions
+
+    # create the structure for multiple neurons
+    process_neur = []                                     # requested list structure for multiple neurons with sessions
     for i in range(len(dict_param['list_states'])):
         for j in range(dict_param['num_indep_neurons']):
             for k in range(dict_param['num_predictors']):
@@ -354,11 +344,11 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
                 process_neur.append(reduced_matrix.reshape((T_list[k], 1)))  # reshape in the correct format
                 # checking how many points are lost due to nans  in the predictors (no nans in the neural response)
                 miss_points_ratio = (tot_time - T_list[k]) / tot_time
-                # create a folder for the particular case (model, neuron and predictor) with .txt description###
+                # create a folder for the particular case (model, neuron and predictor) with .txt description
                 print(f"!Fraction missing points is {miss_points_ratio} for the model {i} neuron {j} and predictor {k}")
-                name_folder = f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}_numsess={dict_param['num_indep_neurons']}" \
-                              + f"_max_iters={dict_param['N_iters']}_tolerance={dict_param['tolerance']}" + \
-                              f"_pred={1}" + \
+                name_folder = f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}_" \
+                              f"numsess={dict_param['num_indep_neurons']}" + f"_max_iters={dict_param['N_iters']}_" \
+                              f"tolerance={dict_param['tolerance']}" + f"_pred={1}" + \
                               f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}/"
                 path_current_pred_dir = plots_folder + "/" + name_folder
                 if not os.path.exists(path_current_pred_dir):
@@ -375,17 +365,16 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
 
                 with open(path_current_pred_dir + f"description_parameters_{predictors_name_list[k]}.txt", "w") as file:
                     file.write(text_content)
-                # TODO: do a dictionary instead of list?
                 path_plots_list.append(path_current_pred_dir)
 
-                # create the istances for inference
+                # create the instance for inference
                 ista_glmhmm = ssm.HMM(dict_param['list_states'][i], dict_param['num_dimen'], 2,
                                       observations=dict_param['observation_type'],
                                       observation_kwargs=dict(C=dict_param['num_categ_obs']),
                                       transitions=dict_param['transistion_type'])
                 glmhmms_ista.append(ista_glmhmm)
 
-    # dictionary to store all the objects and istances to do the inference off module
+    # dictionary to store all the objects and instances to do the inference off module
     dict_objects = {}
     dict_objects["glmhmms_ista"] = glmhmms_ista
     dict_objects["process_neur"] = process_neur
@@ -404,22 +393,20 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
 
 # -------------------------------------------------------------------------------------------------------------------- #
 
-###multiple predictors structure for inference###
 
-# input all_predictors_list = list_from_other_function
-# import a csv file with the same structure of the cells
-# ? TODO: compare the strings to be sure they are correct?
-
-def data_structure_multicov(path_analysis_dir, path_info_dir, path_multi_pred_dir, data_continous_ratemaps,
+def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_pred_dir, data_continous_ratemaps,
                             data_binned_glm, dict_param, tot_time, cell_index, dict_objects=None,
-                            file_predictors=None):
+                            best_predictors=None):
     """
+    Same purpose of the function above but with multiple predictor for single neuron inference.
+    In order to avoid "nans", the shared "not nans" indices are used to select the cell time points
+    """
+    assert dict_param['num_predictors']>1, f"If single predictor, you can use the function data_structure()"
 
-    """
     date = datetime.date.today()
     path_plots_list = []
-    tot_masked_indices = []
-    best_predictors_name_df = pd.read_csv(path_info_dir + file_predictors)
+    glmhmms_ista = []
+    best_predictors_name_df = pd.read_csv(path_info_dir + best_predictors)
     print(best_predictors_name_df)
 
     masked_values = []
@@ -427,81 +414,76 @@ def data_structure_multicov(path_analysis_dir, path_info_dir, path_multi_pred_di
         test_mask = np.where(
             np.isnan(data_continous_ratemaps['possiblecovariates'][f"{best_predictors_name_df.iloc[i, 0]}"]) == True, 0,
             1)
-        print(len(np.nonzero(test_mask)[0]))
         index_1_mask = np.where(test_mask == 1)[0]
         masked_values.append(list(index_1_mask))
 
-    # TODO: remove the first if and put an assert to suggest the other function if 1 predictor
-    if dict_param['num_predictors'] == 1:
-        tot_mask_indices = masked_values[0]
-    elif dict_param['num_predictors'] == 2:
+    if dict_param['num_predictors'] == 2:
         tot_mask_indices = np.intersect1d(masked_values[0], masked_values[1])
     else:
         tup_list_indices = [a for a in masked_values]
         tot_mask_indices = reduce(np.intersect1d, (tup_list_indices))
     T = len(tot_mask_indices)
     inpts = np.ones((dict_param['num_indep_neurons'], T, dict_param['num_predictors']), dtype=np.float64)
-    for i in range(dict_param['num_predictors'] - 1):  # beacuse the last one should not be overwritten (bias=1)
+    for i in range(dict_param['num_predictors']):  # beacuse the last one should not be overwritten (bias=1)
         inpts[:, :, i] = data_continous_ratemaps['possiblecovariates'][f"{best_predictors_name_df.iloc[i, 0]}"][
             tot_mask_indices]
-    inpts = list(inpts)  # correct format #in partiular if you have different length of time for spike trains
-
+    inpts = list(inpts)  # correct format for ssm
+    print(f"the inputs format is {inpts}")
     name_upper_folder = f"{dict_param['animal_name']}_multipredictor_{date}_run/"
     if not os.path.exists(path_multi_pred_dir + name_upper_folder):
         os.makedirs(path_multi_pred_dir + name_upper_folder)
     plots_folder = path_multi_pred_dir + name_upper_folder
 
-    # -------------------------------------------------------------------------------------------------------------------- #
-    process_neur = []  # requested list structure for multiple neurons with sessions
+    # ---------------------------------------------------------------------------------------------------------------- #
+    process_neur = []  # requested list structure
     for i in range(len(dict_param['list_states'])):
-        for j in range(dict_param['num_indep_neurons']):
 
-            selected_neur_mat = data_binned_glm['spk_mat'][cell_index[j]]
-            # binarization (possible presence of 2 spikes each bin)
-            selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)
-            # selecting the first neuron and taking only the shared indices to use the mask
-            reduced_matrix = selected_neur_mat[tot_mask_indices].astype(int)
-            process_neur.append(reduced_matrix.reshape((T, 1)))  # reshape in the correct format
-            # checking how many points are lost due to nans  in the predictors (no nans in the neural response)
-            miss_points_ratio = (tot_time - T) / tot_time
-            # create a folder for the particular case (model, neuron and predictor) with .txt description###
-            print(f"!Fraction missing points is {miss_points_ratio} for the model {i} neuron {j}")
+        selected_neur_mat = data_binned_glm['spk_mat'][cell_index[0]]
+        # binarization (possible presence of 2 spikes each bin)
+        selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)
+        # selecting the first neuron and taking only the shared indices to use the mask
+        reduced_matrix = selected_neur_mat[tot_mask_indices].astype(int)
+        process_neur.append(reduced_matrix.reshape((T, 1)))  # reshape in the correct format
+        # checking how many points are lost due to nans  in the predictors (no nans in the neural response)
+        miss_points_ratio = (tot_time - T) / tot_time
+        # create a folder for the particular case (model, neuron and predictor) with .txt description###
+        print(f"!Fraction missing points is {miss_points_ratio} for the model {i}")
 
-            name_folder = f"multicov_{dict_param['animal_name']}_states={dict_param['list_states'][i]}_neur={data_continous_ratemaps['cell_names'][[cell_index[j]]]}" \
-                          + f"_max_iters={dict_param['N_iters']}_tol={dict_param['tolerance']}" + \
-                          f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}/"
-            path_current_inference = plots_folder + name_folder
-            if not os.path.exists(path_current_inference):
-                os.makedirs(path_current_inference)
+        name_folder = f"multicov_{dict_param['animal_name']}_states={dict_param['list_states'][i]}_neur={data_continous_ratemaps['cell_names'][cell_index[0]]}" \
+                      + f"_max_iters={dict_param['N_iters']}_tol={dict_param['tolerance']}" + \
+                      f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}/"
+        path_current_inference = plots_folder + name_folder
+        if not os.path.exists(path_current_inference):
+            os.makedirs(path_current_inference)
+        text_content = f"Multiple predictors and neurons inference." "\n" \
+                       f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}" \
+                       f"_neur={data_continous_ratemaps['cell_names'][cell_index[0]]}_max_iters={dict_param['N_iters']}" \
+                       f"_tolerance={dict_param['tolerance']}" \
+                       f"_tot_pred={dict_param['num_predictors']}_distal" "\n" \
+                       f"obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}" \
+                       f"_method={dict_param['optim_method']}" "\n" \
+                       f"fraction of missing points={miss_points_ratio}"
+        with open(path_current_inference + "description_parameters_multipredictor.txt", "w") as file:
+            file.write(text_content)
+        path_plots_list.append(path_current_inference)
 
-            text_content = f"Multiple predictors and neurons inference." "\n" \
-                           f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}" \
-                           f"_neur={data_continous_ratemaps['cell_names'][[cell_index[j]]]}_max_iters={dict_param['N_iters']}" \
-                           f"_tolerance={dict_param['tolerance']}" \
-                           f"_tot_pred={dict_param['num_predictors']}_distal" "\n" \
-                           f"obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}" \
-                           f"_method={dict_param['optim_method']}" "\n" \
-                           f"fraction of missing points={miss_points_ratio}"
-            with open(path_current_inference + "description_parameters_multipredictor.txt", "w") as file:
-                file.write(text_content)
-            path_plots_list.append(path_current_inference)
-            # create the istances for inference
-            ista_glmhmm = ssm.HMM(dict_param['list_states'][i], dict_param['num_dimen'], 2,
-                                  observations=dict_param['observation_type'],
-                                  observation_kwargs=dict(C=dict_param['num_categ_obs']),
-                                  transitions=dict_param['transistion_type'])
-            glmhmms_ista.append(ista_glmhmm)
+        # create the instance for inference
+        ista_glmhmm = ssm.HMM(dict_param['list_states'][i], dict_param['num_dimen'], dict_param['num_predictors'],
+                              observations=dict_param['observation_type'],
+                              observation_kwargs=dict(C=dict_param['num_categ_obs']),
+                              transitions=dict_param['transistion_type'])
+        glmhmms_ista.append(ista_glmhmm)
 
     dict_processed_objects_multicov = {}
     dict_processed_objects_multicov["glmhmms_ista"] = glmhmms_ista
     dict_processed_objects_multicov["process_neur"] = process_neur
     dict_processed_objects_multicov["inputs_list"] = inpts
     dict_processed_objects_multicov["T_list"] = T
-    dict_processed_objects_multicov["tot_masked_indices_list"] = tot_masked_indices
+    dict_processed_objects_multicov["tot_masked_indices_list"] = tot_mask_indices
     dict_processed_objects_multicov["path_plots_list"] = path_plots_list
     data_file_name = 'dict_processed_objects_multicov.pkl'
     a_file = open(path_analysis_dir + data_file_name, "wb")
     pickle.dump(dict_processed_objects_multicov, a_file)
     a_file.close()
 
-    return glmhmms_ista, process_neur, inpts, T, tot_masked_indices, path_plots_list, dict_processed_objects_multicov
+    return glmhmms_ista, process_neur, inpts, T, tot_mask_indices, path_plots_list, dict_processed_objects_multicov

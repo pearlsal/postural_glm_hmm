@@ -1,3 +1,6 @@
 ﻿Predictors'
-'B Speeds'
-'G Neck_elevation'
+B Speeds
+G Neck_elevation
+K Ego3_Head_roll
+N Back_pitch
+B Speeds_1st_der
