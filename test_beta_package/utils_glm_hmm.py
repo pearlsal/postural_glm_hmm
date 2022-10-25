@@ -39,6 +39,10 @@ def dict_transformed_inferred_weights(path_analysis_dir, path_info_dir, glmhmms_
             dict_objects = pickle.load(handle)
             plots_dir = dict_objects['path_plots_list'][0]
 
+    with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
+        dict_info = pickle.load(handle)
+        animal_name = dict_info['animal_name']
+
     inf_weight_dict = {}
     key_states = [str(x) + "_states" for x in dict_param['list_states']]
     for i in range(dict_param['num_states']):
@@ -52,7 +56,7 @@ def dict_transformed_inferred_weights(path_analysis_dir, path_info_dir, glmhmms_
     pickle.dump(inf_weight_dict, a_file)
     a_file.close()
 
-    return inf_weight_dict, plots_dir, dict_param
+    return inf_weight_dict, plots_dir, dict_param, animal_name
 
 
 # -------------------------------------------------------------------------------------------------------------------- #

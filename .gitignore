@@ -1,9 +1,9 @@
 # exclude everything
 /data/*
-/results_folder/*
+/results_folder/info_dir/*
 /__pycache__/
 /.ipynb_checkpoints/*
 
 # exception to the rule
-!/data/.gitkeep.txt
-!/results_folder/.gitkeep.txt
+!/data/raw_data/.gitkeep.txt
+!/results_folder/info_dir/best_predictors.csv
