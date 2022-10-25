@@ -10,18 +10,14 @@ from ratemaps import *
 from spikestats.process_data import *
 from spikestats.toolkits import *
 
-# loading data and pre-inference processing#####
-
 """
-path_raw_data == folder containing the "figshare" pickle files
-path_output == folder where you have the files and where you want the additional files to be saved (!PLOT EXCEPTION!)
-pickle_file == the above mentioned 
+With this module you can create the data structure, formatting data, generate the istances of the class and save all 
+quantities for further analysis
 """
-
 
 def folder_structure():
     """
-    Function to create the folder structure for the module
+    Function to check or create the folder structure for the module
     """
 
     data_folder = f"data"
@@ -97,7 +93,7 @@ def processing_and_loading(path_raw_data_folder, path_process_data_folder, mat_f
     data_continous_ratemaps : it contains continous predictors with their names and cells' ID. Coming from "get_rm_pre_data()"
     data_binned_glm : discretized and sorted spikes in a matricial form. Coming from "prepare_data4glms()"
     """
-    # TODO: assert mat_file or (data_continous_ratemaps_pickle and data_binned_glm_pickle)
+
     if mat_file is not None:
         # TODO: ask Ida about boundaries and a basic-general set of values
         boundaries = {'neck_elevation': (0., 0.36),
@@ -191,7 +187,7 @@ def get_data_information(path_info_dir, data_continous_ratemaps):
     dict_info['cells_id'] = cells_id
     dict_info['animal_name'] = animal_name
 
-    data_file_name = 'dictionary_information.pkl'
+    data_file_name = f'dictionary_information.pkl'                   # _{animal_name}
     with open(path_info_dir + data_file_name, "wb") as handle:
         pickle.dump(dict_info, handle)
 
@@ -210,6 +206,9 @@ def dict_parameters_hmm(path_info_dir, animal_name, num_dimen, num_categ_obs=2, 
     """
     # TODO: put assert to check that the number of neurons is between 1 and N(tot number of neurons from length of cell_names)
     # TODO: put assert for the rest of the parameters
+    assert num_dimen.dtype==int, f"number of dimension has to be an integer"
+    assert threshold_diff_pred>0 and threshold_diff_pred<1, f"threshold has to be greater than 0 and smaller than 1"
+
     dict_param = {}
 
     dict_param['num_dimen'] = num_dimen
@@ -220,12 +219,12 @@ def dict_parameters_hmm(path_info_dir, animal_name, num_dimen, num_categ_obs=2, 
     dict_param['num_predictors'] = num_predictors
     dict_param['max_num_states'] = max_num_states
     dict_param['num_states'] = max_num_states - 1
-    dict_param['list_states'] = [a for a in range(2, max_num_states + 1)]  # !check the +1!##
+    dict_param['list_states'] = [a for a in range(2, max_num_states + 1)]
     dict_param['observation_type'] = observation_type
     dict_param['transistion_type'] = transistion_type
     dict_param['optim_method'] = optim_method
     dict_param['animal_name'] = animal_name
-    dict_param['threshold_diff_pred'] = threshold_diff_pred  # TODO: assert 0<thresh<1
+    dict_param['threshold_diff_pred'] = threshold_diff_pred
 
     data_file_name = 'dictionary_parameters.pkl'
     with open(path_info_dir + data_file_name, "wb") as handle:
@@ -236,15 +235,13 @@ def dict_parameters_hmm(path_info_dir, animal_name, num_dimen, num_categ_obs=2, 
 
 # -------------------------------------------------------------------------------------------------------------------- #
 
-
-# TODO: use assert  to check if all the spike trains have the same length so that I can take ['spk_mat'][0] and..
 def cells_selection_random(path_info_dir, data_continous_ratemaps, data_binned_glm, dict_param):
     """
     This function selects the number of neurons you insert in the dictionary for parameters and obtain all
     the necessary information and save them
     """
     cell_names_list = np.asarray(data_continous_ratemaps['cell_names'])
-    # assert (num_indip_neu<len(cell_names_list))
+    assert dict_param['num_indep_neurons']<len(cell_names_list),"You want to analyze more cells than the available ones"
     cells_to_infer = np.random.choice(cell_names_list, size=dict_param['num_indep_neurons'])
     cells_index_rnd = []
     for i in range(len(cells_to_infer)):
@@ -266,16 +263,14 @@ def cells_selection_manual(path_info_dir, data_continous_ratemaps, data_binned_g
     """
     Write the full name of the file including .csv
     CSV file structure: only one column with cells' names on the rows (e.g. 'imec0_cl0000_ch000'). Remember quotes or no?
-    The default location is in the path_info_dir, so that the path is automatized. Remember to insert there
-    ?or is it better to leave in the main folder and automatically move to the info_dir?
+    The default location is in the path_info_dir, so that the recall is automatized. Remember to insert there
     """
 
     cell_names_array = np.array(data_continous_ratemaps['cell_names'])
-    data_read = pd.read_csv(csv_file_cells)
+    data_read = pd.read_csv(path_info_dir + csv_file_cells)
     cells_index = []
     for i in range(dict_param['num_indep_neurons']):
         cells_index.append(np.where(cell_names_array == data_read.iloc[i, 0])[0][0])
-        # TODO: if error on the component [0], means the cells are not matching (one reason for the error). Use assert
 
     tot_time = len(data_binned_glm['spk_mat'][0])
 
@@ -285,16 +280,14 @@ def cells_selection_manual(path_info_dir, data_continous_ratemaps, data_binned_g
 
     return cells_index, tot_time
 
-
 # -------------------------------------------------------------------------------------------------------------------- #
 
 
-# TODO: capital print to warn about the deleted time points of the mask and
-def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_continous_ratemaps, data_binned_glm, dict_param,
-                   tot_time, cell_index, predictors_name_list, predictor_file=None):
+def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_continous_ratemaps, data_binned_glm,
+                   dict_param, tot_time, cell_index, predictors_name_list, predictor_file=None):
     """
     Main function to process the data (neurons' and predictors' time series)
-    The "predictor_file" has to be in the
+    The "predictor_file" has to be in "info_dir"
     """
     if predictor_file is not None:
         predictors_df = pd.read_csv(path_info_dir + predictor_file)
