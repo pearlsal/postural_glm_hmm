@@ -46,14 +46,13 @@ print(f"States occupancy is {states_occupancies}")
 log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=path_plots_list[0], dict_param=dict_param,
                               fit_ll_states_list=fit_ll_states_list)
 
-posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, data_continous_ratemaps,
-                                             posterior_probs_list,
-                                             predictors_name_list, tot_masked_indices_list, T_list,
-                                             plots_dir=path_plots_list[0],  dict_param=dict_param)
+posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, posterior_probs_list=posterior_probs_list,
+                                             tot_masked_indices_list=tot_masked_indices_list,
+                                             T_list=T_list, pred_index=0)
 
 states_occupancies_histogram(path_analysis_dir, path_info_dir, dict_param=dict_param,
                              states_occupancies=states_occupancies)
 
-transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista = glmhmms_ista, dict_param = dict_param)
+transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=glmhmms_ista, dict_param=dict_param)
 
 weights_distribution_histogram(path_analysis_dir, path_info_dir)
