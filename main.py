@@ -5,7 +5,7 @@ path_data_folder, path_raw_data_folder, path_process_data_folder, path_top_folde
 path_plots_dir, path_single_pred_dir, path_multi_pred_dir = folder_structure()
 
 data_continous_ratemaps, data_binned_glm = \
-    processing_and_loading(path_raw_data_folder, path_process_data_folder, mat_file="diana_chasing2_notreheaded.mat")
+    processing_and_loading(path_raw_data_folder, path_process_data_folder, mat_file="diana_chasing2_notreheaded")
 
 
 # obtain the information about predictors names, cells ID, animal name and session
