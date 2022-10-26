@@ -40,9 +40,6 @@ posterior_probs_list = posterior_prob_process(path_info_dir, path_analysis_dir, 
                                               glmhmms_ista=glmhmms_ista, process_neur=process_neur,
                                               inputs_list=inputs_list)
 
- glmhmms_ista = None, process_neur = None,
-inputs_list = None, dict_processed_objects = None, multi_predictor = None
-
 states_occupancies = states_occupancies_computation(path_analysis_dir, posterior_probs_list)
 print(f"States occupancy is {states_occupancies}")
 
