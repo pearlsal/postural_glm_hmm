@@ -266,7 +266,7 @@ def cells_selection_manual(path_info_dir, data_continous_ratemaps, data_binned_g
     for i in range(dict_param['num_indep_neurons']):
         cells_index.append(np.where(cell_names_array == data_read.iloc[i, 0])[0][0])
     tot_time = len(data_binned_glm['spk_mat'][0])
-
+    print(f"cell indices are {cells_index}")
     text_content = f"ID cells selected for this inference is {data_read} and the corresponding indices are {cells_index}"
     with open(path_info_dir + "cells_list_and_indices.txt", "w") as file:
         file.write(text_content)
@@ -277,7 +277,7 @@ def cells_selection_manual(path_info_dir, data_continous_ratemaps, data_binned_g
 
 
 def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_continous_ratemaps, data_binned_glm,
-                   dict_param, tot_time, cell_index, predictor_file='test_predictors.csv'):
+                   dict_param, tot_time, cells_index, predictor_file='test_predictors.csv'):
     """
     Main function to process the data (neurons' and predictors' time series)
     The "predictor_file" has to be in "info_dir"
@@ -333,7 +333,7 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
         for j in range(dict_param['num_indep_neurons']):
             for k in range(dict_param['num_predictors']):
                 selected_neur_mat = data_binned_glm['spk_mat'][
-                    cell_index[j]]
+                    cells_index[j]]
                 # binarization (possible presence of 2 spikes each bin)
                 selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)
                 # selecting the first neuron and taking only the shared indices to use the mask
@@ -393,7 +393,7 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
 
 
 def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_pred_dir, data_continous_ratemaps,
-                            data_binned_glm, dict_param, tot_time, cell_index, dict_objects=None,
+                            data_binned_glm, dict_param, tot_time, cells_index, dict_objects=None,
                             best_predictors=None):
     """
     Same purpose of the function above but with multiple predictor for single neuron inference.
@@ -436,7 +436,7 @@ def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_p
     process_neur = []  # requested list structure
     for i in range(len(dict_param['list_states'])):
 
-        selected_neur_mat = data_binned_glm['spk_mat'][cell_index[0]]
+        selected_neur_mat = data_binned_glm['spk_mat'][cells_index[0]]
         # binarization (possible presence of 2 spikes each bin)
         selected_neur_mat = np.where(selected_neur_mat == 0, selected_neur_mat, 1)
         # selecting the first neuron and taking only the shared indices to use the mask
@@ -455,7 +455,7 @@ def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_p
             os.makedirs(path_current_inference)
         text_content = f"Multiple predictors and neurons inference." "\n" \
                        f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}" \
-                       f"_neur={data_continous_ratemaps['cell_names'][cell_index[0]]}_max_iters={dict_param['N_iters']}" \
+                       f"_neur={data_continous_ratemaps['cell_names'][cells_index[0]]}_max_iters={dict_param['N_iters']}" \
                        f"_tolerance={dict_param['tolerance']}" \
                        f"_tot_pred={dict_param['num_predictors']}_distal" "\n" \
                        f"obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}" \

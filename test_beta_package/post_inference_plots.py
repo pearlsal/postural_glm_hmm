@@ -105,7 +105,7 @@ def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, 
 
     comp_istance = 0
     num_states = glmhmms_ista[comp_istance].transitions.log_Ps.shape[0]
-
+    print(f"probabilities non exponent are {glmhmms_ista[comp_istance].transitions.log_Ps}")
     fig = plt.figure(figsize=(7, 4), dpi=dpi, facecolor=fcc, edgecolor=ec)
     fig.add_subplot(1, 1, 1)
     recovered_trans_mat = np.exp(glmhmms_ista[comp_istance].transitions.log_Ps)
