@@ -26,7 +26,7 @@ print(f"the indices for the selected cells are {cell_index} and the total length
 # processing of data and creation of istances for the inference
 glmhmms_ista, process_neur, inputs_list, T_list, tot_masked_indices_list, path_plots_list, plots_folder = \
     data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_continous_ratemaps, data_binned_glm,
-                   dict_param, tot_time, cell_index, predictors_name_list, predictor_file="test_predictors.csv")
+                   dict_param, tot_time, cell_index)
 print(f"list of time length for different predictors is {T_list}")
 # inference part # with previous inputs
 fit_ll_states_list, glmhmms_ista, time_states_comp = inference_section(path_analysis_dir, path_info_dir, dict_param,
