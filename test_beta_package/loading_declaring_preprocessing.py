@@ -154,7 +154,6 @@ def processing_and_loading(path_raw_data_folder, path_process_data_folder, mat_f
 
         data_continous_ratemaps = data
         data_binned_glm = dataglm
-        print(f"from mat the glm keys are {data_binned_glm.keys()}")
 
     if (data_continous_ratemaps_pickle and data_binned_glm_pickle) is not None:
         with open(path_process_data_folder + data_continous_ratemaps_pickle, 'rb') as handle:
@@ -162,9 +161,6 @@ def processing_and_loading(path_raw_data_folder, path_process_data_folder, mat_f
         with open(path_process_data_folder + data_binned_glm_pickle, 'rb') as handle:
             data_binned_glm = pickle.load(handle)
 
-        print(f"the continous dictionary is {data_continous_ratemaps.keys()}")
-        print(f"the binned dictionary is {data_binned_glm.keys()}")
-        print(f"the binned dictionary is {data_binned_glm['spk_mat'][0]}")
 
     return data_continous_ratemaps, data_binned_glm
 
@@ -281,7 +277,7 @@ def cells_selection_manual(path_info_dir, data_continous_ratemaps, data_binned_g
 
 
 def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_continous_ratemaps, data_binned_glm,
-                   dict_param, tot_time, cell_index, predictors_name_list=None, predictor_file=None):
+                   dict_param, tot_time, cell_index, predictor_file='test_predictors.csv'):
     """
     Main function to process the data (neurons' and predictors' time series)
     The "predictor_file" has to be in "info_dir"
@@ -309,9 +305,10 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
     print(f"IMPORTANT: given the presence of nans (missing points of the camera) part of the data are deleted." +
           f"If the number of missing points is 'small enough', it should not interfere with the inference."
           f"Below the ratio of missing points")
-
+    print(f"predictor list {predictors_name_list}")
     for k in range(dict_param['num_predictors']):
         # take only the common (shared, redundant) indices
+        print(data_continous_ratemaps['possiblecovariates'][f'{predictors_name_list[k]}'])
         mask_raw = np.ma.masked_where(
             np.isnan(data_continous_ratemaps['possiblecovariates'][f'{predictors_name_list[k]}']) == True,
             data_continous_ratemaps['possiblecovariates'][f'{predictors_name_list[k]}'],
@@ -382,6 +379,7 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
     dict_objects["T_list"] = T_list
     dict_objects["tot_masked_indices_list"] = tot_masked_indices_list
     dict_objects["path_plots_list"] = path_plots_list
+    dict_objects["predictors_name_list"] = predictors_name_list
 
     data_file_name = 'dict_objects.pkl'
     a_file = open(path_analysis_dir + data_file_name, "wb")

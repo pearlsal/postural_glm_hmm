@@ -203,7 +203,7 @@ def states_occupancies_computation(path_analysis_dir, posterior_probs_list=None,
             dict_posterior_loaded = pickle.load(handle)
         posterior_probs_list = dict_posterior_loaded["posterior_probs_list"]
         print(f"state of occupancy is {posterior_probs_list}")
-
+    print(posterior_probs_list[1][0][0][0])
     # for each time point, selecting which is the max of those states value
     state_max_posterior = np.argmax(posterior_probs_list[1][0][0][0], axis=1)
 

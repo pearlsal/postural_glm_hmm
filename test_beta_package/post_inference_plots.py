@@ -13,7 +13,7 @@ For some function you need to specify the model and parameters accordingly.
 
 def log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=None, dict_param=None,
                                   fit_ll_states_list=None, dict_objects=None, dict_processed_objects=None,
-                                  dictionary_information=None):
+                                  dictionary_information=None, multi_predictor=None):
     """
     All log-likelihoods time evolution grouped by color.
     """
@@ -36,24 +36,44 @@ def log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=No
 
     dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
-    print(len(fit_ll_states_list), len(fit_ll_states_list[0]))
-
-    fig = plt.figure(figsize=(7, 5), dpi=dpi, facecolor=fcc, edgecolor=ec)
-    for i in range(len(dict_param['list_states'])):
-        colors_states = colors_number(colors_number=dict_param['list_states'][i])
+    if multi_predictor is None:
+        fig = plt.figure(figsize=(7, 5), dpi=dpi, facecolor=fcc, edgecolor=ec)
+        for i in range(len(dict_param['list_states'])):
+            colors_states = colors_number(colors_number=dict_param['list_states'][i])
+            name_states = [str(x) + "_states" for x in dict_param['list_states']]
+            for j in range(dict_param['num_predictors']):  # #!!cluster with lw or color the states and the neurons
+                plt.plot(fit_ll_states_list[i][j], color=colors_states[i])  # ,color=CB_color_cycle[i]
+            plt.plot(fit_ll_states_list[i][dict_param['num_predictors'] - 1], color=colors_states[i],
+                     label=name_states[i])
+        plt.legend(loc="best", fontsize=10)
+        plt.xlabel("EM Iteration")
+        plt.xlim(0, dict_param['N_iters'])
+        plt.ylabel("Log-likelihood")
+        plt.suptitle("Log-likelihood evolution (EM)")
+        plt.tight_layout()
+        plt.savefig(plots_dir + f"loglikelihood_time_evolution_" + post_description_savefig, bbox_inches="tight",
+                    dpi=dpi)
+        plt.show()
+    else:
+        fig = plt.figure(figsize=(7, 5), dpi=dpi, facecolor=fcc, edgecolor=ec)
+        colors_states = colors_number(colors_number=dict_param['list_states'][-1])
         name_states = [str(x) + "_states" for x in dict_param['list_states']]
-        for j in range(dict_param['num_predictors']):  # #!!cluster with lw or color the states and the neurons
-            plt.plot(fit_ll_states_list[i][j], color=colors_states[i])  # ,color=CB_color_cycle[i]
-        plt.plot(fit_ll_states_list[i][dict_param['num_predictors'] - 1], color=colors_states[i], label=name_states[i])
-    plt.legend(loc="best", fontsize=10)
-    plt.xlabel("EM Iteration")
-    plt.xlim(0, dict_param['N_iters'])
-    plt.ylabel("Log-likelihood")
-    plt.suptitle("Log-likelihood evolution (EM)")
-    plt.tight_layout()
-    plt.savefig(plots_dir + f"loglikelihood_time_evolution_" + post_description_savefig, bbox_inches="tight",
-                dpi=dpi)
-    plt.show()
+        for i in range(2):
+            plt.plot(fit_ll_states_list[i][0], color=colors_states[i], label=name_states[i])
+
+        plt.legend(loc="best", fontsize=10)
+        plt.xlabel("EM Iteration")
+        plt.xlim(0, dict_param['N_iters'])
+        plt.ylabel("Log-likelihood")
+        plt.suptitle("Log-likelihood evolution (EM)")
+        plt.tight_layout()
+        plt.savefig(plots_dir + f"loglikelihood_time_evolution_" + post_description_savefig, bbox_inches="tight",
+                    dpi=dpi)
+        plt.show()
+
+
+
+
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -131,9 +151,10 @@ def weights_distribution_histogram(path_analysis_dir, path_info_dir, multi_predi
 
     else:
         for key in inf_weight_dict.keys():
+            print(f"the len for the bias is {inf_weight_dict[key][0][:, 0]}")
             for i in range(dict_param['num_predictors']):
                 flat_predictor_w.append(list(inf_weight_dict[key][0][:, 0, i]))
-            flat_bias_w.append(inf_weight_dict[key][0][:, 0, dict_param['num_predictors']])
+            flat_bias_w.append(inf_weight_dict[key][0][:, 0, -1])
         flat_predictor_w = list(itertools.chain.from_iterable(flat_predictor_w))
         flat_bias_w = list(itertools.chain.from_iterable(flat_bias_w))
         flat_all_weights = flat_predictor_w + flat_bias_w
@@ -199,27 +220,32 @@ def states_occupancies_histogram(path_analysis_dir, path_info_dir, dict_param=No
 
 # TODO: generalize
 def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, data_continous_ratemaps,
-                                             posterior_probs_list,
-                                             predictors_name_list, tot_masked_indices_list, T_list,
-                                             plots_dir=None,  dict_param=None,
+                                             posterior_probs_list=None,
+                                             tot_masked_indices_list=None, T_list=None,
                                              dict_posterior=None,
-                                             dict_objects=None,
-                                             dictionary_information=None, name_check_covariate='B Speeds'):
+                                             instance_index=0, pred_index=0, multi_pred=None):
     """
     Posterior probabilities plot comparison with a predictor.
     """
 
-    if (dict_objects and dict_posterior and dictionary_information) is not None:
-        with open(path_analysis_dir + 'dict_processed_objects.pkl', 'rb') as handle:
+    if (dict_posterior) is not None:
+        with open(path_analysis_dir + 'dict_posterior.pkl', 'rb') as handle:
             dict_posterior_objects = pickle.load(handle)
+            print(f"the keys of the posterior dict are {dict_posterior_objects.keys()}")
             posterior_probs_list = dict_posterior_objects['posterior_probs_list']
 
         with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
             dict_objects = pickle.load(handle)
-        plots_dir = dict_objects["path_plots_list"][0]
+            tot_masked_indices_list = dict_objects['tot_masked_indices_list']
+            T_list = dict_objects['T_list']
 
-        with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
-            dict_param = pickle.load(handle)
+    with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+        dict_objects = pickle.load(handle)
+    plots_dir = dict_objects["path_plots_list"][pred_index]
+    predictors_name_list = dict_objects['predictors_name_list']
+
+    with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
+        dict_param = pickle.load(handle)
 
     with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
         dict_info = pickle.load(handle)
@@ -229,11 +255,11 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
 
 
     # TODO: use as input the index of the state you want to analyze
-    model_id = 0  # number of state in the model taken from Klist (0=>2 states)
-    index_istance_struct = 0  # index wrt the structure of the glmhmm istances
-    num_states = 2
+    model_id = 1  # number of state in the model taken from Klist ([0]==2 states)
+    index_istance_struct = instance_index  # index wrt the structure of the glmhmm istances
+    num_states = 3
     # TODO: use the name of the predictor and match it
-    index_cov_check = 0
+    index_cov_check = pred_index
     name_check_covariate = predictors_name_list[index_cov_check]
     print(name_check_covariate)
     check_covariate = data_continous_ratemaps['possiblecovariates'][f"{name_check_covariate}"]
@@ -243,7 +269,10 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
     print(normalized_check_cov)
     colors = colors_number(num_states+1)
 
-    T = T_list[index_istance_struct]
+    if multi_pred is None:
+        T = T_list[index_cov_check]
+    else:
+        T=T_list
     plotrows = 4
     plotcolumns = 4
     time_interval = 4000

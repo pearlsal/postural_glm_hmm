@@ -8,4 +8,5 @@
 # exception to the rule
 !/data/raw_data/.gitkeep.txt
 !/results_folder/info_dir/best_predictors.csv
+!/results_folder/info_dir/test_predictors.csv
 !/results_folder/info_dir/cells_selection.csv
