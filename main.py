@@ -40,13 +40,16 @@ posterior_probs_list = posterior_prob_process(path_info_dir, path_analysis_dir, 
                                               glmhmms_ista=glmhmms_ista, process_neur=process_neur,
                                               inputs_list=inputs_list)
 
+ glmhmms_ista = None, process_neur = None,
+inputs_list = None, dict_processed_objects = None, multi_predictor = None
+
 states_occupancies = states_occupancies_computation(path_analysis_dir, posterior_probs_list)
 print(f"States occupancy is {states_occupancies}")
 
 log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=path_plots_list[0], dict_param=dict_param,
                               fit_ll_states_list=fit_ll_states_list)
 
-posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, posterior_probs_list=posterior_probs_list,
+posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, data_continous_ratemaps, posterior_probs_list=posterior_probs_list,
                                              tot_masked_indices_list=tot_masked_indices_list,
                                              T_list=T_list, pred_index=0)
 
