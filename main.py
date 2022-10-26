@@ -14,7 +14,7 @@ print(f"The animal name is {animal_name}")
 
 # with the function below you assign the parameters for the inference.
 # the constraint are described in the file "additional_details.txt"
-dict_param = dict_parameters_hmm(path_info_dir,  animal_name, num_dimen=1, num_categ_obs=2, N_iters=100,
+dict_param = dict_parameters_hmm(path_info_dir,  animal_name, num_dimen=1, num_categ_obs=2, N_iters=10,
                                  tolerance=10 ** -5, num_indep_neurons=2, num_predictors=3, max_num_states=3,
                                  observation_type="input_driven_obs", transistion_type="inputdriven", optim_method="em")
 print(f"parameters dictionary is {dict_param}")
