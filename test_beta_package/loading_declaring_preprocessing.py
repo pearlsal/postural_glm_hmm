@@ -192,7 +192,7 @@ def get_data_information(path_info_dir, data_continous_ratemaps):
 # -------------------------------------------------------------------------------------------------------------------- #
 
 def dict_parameters_hmm(path_info_dir, animal_name, num_dimen, num_categ_obs=2, N_iters=100, tolerance=10 ^ -5,
-                        num_indep_neurons=2, num_predictors=3, max_num_states=3, observation_type="input_driven_obs",
+                        num_indep_neurons=1, num_predictors=3, max_num_states=3, observation_type="input_driven_obs",
                         transistion_type="inputdriven", optim_method="em", threshold_diff_pred=None):
     """
     This function includes all the parameters for the inference.
@@ -343,7 +343,7 @@ def data_structure(path_info_dir, path_analysis_dir, path_single_pred_dir, data_
                 miss_points_ratio = (tot_time - T_list[k]) / tot_time
                 # create a folder for the particular case (model, neuron and predictor) with .txt description
                 print(f"!Fraction missing points is {miss_points_ratio} for the model {i} neuron {j} and predictor {k}")
-                name_folder = f"{dict_param['animal_name']}_states={dict_param['list_states'][i]}" \
+                name_folder = f"{dict_param['animal_name']}" \
                               + f"_max_iters={dict_param['N_iters']}_" \
                               + f"_pred={1}" + \
                               f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}/"
@@ -447,7 +447,7 @@ def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_p
         # create a folder for the particular case (model, neuron and predictor) with .txt description###
         print(f"!Fraction missing points is {miss_points_ratio} for the model {i}")
 
-        name_folder = f"multicov_{dict_param['animal_name']}_states={dict_param['list_states'][i]}" \
+        name_folder = f"multicov_{dict_param['animal_name']}" \
                       + f"_max_iters={dict_param['N_iters']}" + \
                       f"_obs={dict_param['observation_type']}_trans={dict_param['transistion_type']}/"
         path_current_inference = plots_folder + name_folder

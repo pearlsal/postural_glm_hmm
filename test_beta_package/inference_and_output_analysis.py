@@ -30,8 +30,7 @@ def inference_section(path_analysis_dir, path_info_dir, dict_param, glmhmms_ista
     for i in range(len(dict_param['list_states'])):
         fit_ll_states_list.append([])  # nested list each iteration over the states
         time_states_comp.append([])
-        print(f"model state is {dict_param['list_states'][i]}")
-        print(f"the number of prdeictor from dict is {dict_param['num_predictors']}")
+        print(f"number of states model is {dict_param['list_states'][i]}")
         for j in range(dict_param['num_predictors']):
             partial_clock = time.time()
             print(f"number predictor is {j}")

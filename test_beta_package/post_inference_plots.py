@@ -80,7 +80,7 @@ def log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=No
 
 
 def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, dict_param=None,
-                           dict_processed_objects=None):
+                           dict_processed_objects=None, comp_istance=0):
     """
     Plot the probability transition matrix
     """
@@ -103,7 +103,6 @@ def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, 
 
     dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
-    comp_istance = 0
     num_states = glmhmms_ista[comp_istance].transitions.log_Ps.shape[0]
     print(f"probabilities non exponent are {glmhmms_ista[comp_istance].transitions.log_Ps}")
     fig = plt.figure(figsize=(7, 4), dpi=dpi, facecolor=fcc, edgecolor=ec)
@@ -115,8 +114,8 @@ def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, 
             text = plt.text(j, i, str(np.around(recovered_trans_mat[i, j], decimals=2)), ha="center", va="center",
                             color="k", fontsize=12)
     plt.xlim(-0.5, num_states - 0.5)
-    plt.xticks(range(0, num_states), ('1', '2'), fontsize=10)
-    plt.yticks(range(0, num_states), ('1', '2'), fontsize=10)
+    plt.xticks(range(0, num_states), ('1', '2', '3'), fontsize=10)
+    plt.yticks(range(0, num_states), ('1', '2', '3'), fontsize=10)
     plt.ylim(num_states - 0.5, -0.5)
     plt.title("recovered", fontsize=15)
     plt.tight_layout()
@@ -307,7 +306,7 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
             plt.ylabel("p(state)", fontsize=15)
             plt.title("Posterior probability states")
     plt.tight_layout()
-    plt.savefig(plots_dir + f"posterior_probability_" + post_description_savefig, bbox_inches="tight", dpi=dpi)
+    plt.savefig(plots_dir + f"posterior_probability_{name_check_covariate}_" + post_description_savefig, bbox_inches="tight", dpi=dpi)
     plt.show()
 
 # posterior list struture
