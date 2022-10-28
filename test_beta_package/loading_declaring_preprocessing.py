@@ -427,10 +427,11 @@ def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_p
             tot_mask_indices]
     inpts = list(inpts)  # correct format for ssm
 
-    name_upper_folder = f"{dict_param['animal_name']}_multipredictor_{date}_run/"
+    name_upper_folder = f"{dict_param['animal_name']}_multipredictor_{date}_run"
     if not os.path.exists(path_multi_pred_dir + name_upper_folder):
         os.makedirs(path_multi_pred_dir + name_upper_folder)
     plots_folder = path_multi_pred_dir + name_upper_folder
+    print(f"test for plot folder")
 
     # ---------------------------------------------------------------------------------------------------------------- #
     process_neur = []  # requested list structure
@@ -472,16 +473,16 @@ def data_structure_multipredictor(path_analysis_dir, path_info_dir, path_multi_p
                               transitions=dict_param['transistion_type'])
         glmhmms_ista.append(ista_glmhmm)
 
-    dict_processed_objects_multicov = {}
-    dict_processed_objects_multicov["glmhmms_ista"] = glmhmms_ista
-    dict_processed_objects_multicov["process_neur"] = process_neur
-    dict_processed_objects_multicov["inputs_list"] = inpts
-    dict_processed_objects_multicov["T_list"] = T
-    dict_processed_objects_multicov["tot_masked_indices_list"] = tot_mask_indices
-    dict_processed_objects_multicov["path_plots_list"] = path_plots_list
-    data_file_name = 'dict_processed_objects_multicov.pkl'
+    dict_objects_multicov = {}
+    dict_objects_multicov["glmhmms_ista"] = glmhmms_ista
+    dict_objects_multicov["process_neur"] = process_neur
+    dict_objects_multicov["inputs_list"] = inpts
+    dict_objects_multicov["T_list"] = T
+    dict_objects_multicov["tot_masked_indices_list"] = tot_mask_indices
+    dict_objects_multicov["path_plots_list"] = path_plots_list
+    data_file_name = 'dict_objects_multicov.pkl'
     a_file = open(path_analysis_dir + data_file_name, "wb")
-    pickle.dump(dict_processed_objects_multicov, a_file)
+    pickle.dump(dict_objects_multicov, a_file)
     a_file.close()
 
-    return glmhmms_ista, process_neur, inpts, T, tot_mask_indices, path_plots_list, dict_processed_objects_multicov
+    return glmhmms_ista, process_neur, inpts, T, tot_mask_indices, path_plots_list, dict_objects_multicov

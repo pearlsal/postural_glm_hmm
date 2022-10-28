@@ -12,18 +12,23 @@ For some function you need to specify the model and parameters accordingly.
 
 
 def log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=None, dict_param=None,
-                                  fit_ll_states_list=None, dict_objects=None, dict_processed_objects=None,
-                                  dictionary_information=None, multi_predictor=None):
+                                  fit_ll_states_list=None, dict_processed_objects=None,
+                                  multipredictor=None):
     """
     All log-likelihoods time evolution grouped by color.
     """
 
-    if (dict_processed_objects and dict_objects and dictionary_information) is not None:
+    if dict_processed_objects is not None:
         with open(path_analysis_dir + 'dict_processed_objects.pkl', 'rb') as handle:
             dict_processed_objects = pickle.load(handle)
         fit_ll_states_list = dict_processed_objects["fit_ll_states_list"]
 
+    if multipredictor is None:
         with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+        plots_dir = dict_objects["path_plots_list"][0]
+    else:
+        with open(path_analysis_dir + 'dict_objects_multicov.pkl', 'rb') as handle:
             dict_objects = pickle.load(handle)
         plots_dir = dict_objects["path_plots_list"][0]
 
@@ -36,7 +41,7 @@ def log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=No
 
     dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
-    if multi_predictor is None:
+    if multipredictor is None:
         fig = plt.figure(figsize=(7, 5), dpi=dpi, facecolor=fcc, edgecolor=ec)
         for i in range(len(dict_param['list_states'])):
             colors_states = colors_number(colors_number=dict_param['list_states'][i])
@@ -80,7 +85,7 @@ def log_like_evolution_per_states(path_analysis_dir, path_info_dir, plots_dir=No
 
 
 def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, dict_param=None,
-                           dict_processed_objects=None, comp_istance=0):
+                           dict_processed_objects=None, comp_istance=0, multipredictor=None):
     """
     Plot the probability transition matrix
     """
@@ -93,9 +98,16 @@ def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, 
         with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
             dict_param = pickle.load(handle)
 
-    with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
-        dict_objects = pickle.load(handle)
-        plots_dir = dict_objects['path_plots_list'][0]
+    if multipredictor is None:
+        with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            plots_dir = dict_objects['path_plots_list'][0]
+        comp_istance = dict_param['num_predictors'] + 1
+    else:
+        with open(path_analysis_dir + 'dict_objects_multicov.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            plots_dir = dict_objects['path_plots_list'][0]
+
 
     with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
         dict_info = pickle.load(handle)
@@ -104,7 +116,6 @@ def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, 
     dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
     num_states = glmhmms_ista[comp_istance].transitions.log_Ps.shape[0]
-    print(f"probabilities non exponent are {glmhmms_ista[comp_istance].transitions.log_Ps}")
     fig = plt.figure(figsize=(7, 4), dpi=dpi, facecolor=fcc, edgecolor=ec)
     fig.add_subplot(1, 1, 1)
     recovered_trans_mat = np.exp(glmhmms_ista[comp_istance].transitions.log_Ps)
@@ -125,21 +136,21 @@ def transition_prob_matrix(path_analysis_dir, path_info_dir, glmhmms_ista=None, 
 
 # -------------------------------------------------------------------------------------------------------------------- #
 
-def weights_distribution_histogram(path_analysis_dir, path_info_dir, multi_predictor=None):
+def weights_distribution_histogram(path_analysis_dir, path_info_dir, multipredictor=None):
     """
     Histogram of parameters distribution. Divided by predictors and bias term, plus combined distribution
     """
 
     inf_weight_dict, plots_dir, dict_param, animal_name = \
         dict_transformed_inferred_weights(path_analysis_dir, path_info_dir, dict_param=0, dict_processed_objects=0,
-                                          multi_predictor=multi_predictor)
+                                          multipredictor=multipredictor)
 
     dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
 
     flat_bias_w = []
     flat_predictor_w = []
 
-    if multi_predictor is None:
+    if multipredictor is None:
         for key in inf_weight_dict.keys():
             for i in range(dict_param['num_predictors']):
                 flat_predictor_w.append(list(inf_weight_dict[key][i][:, 0, 0]))
@@ -150,9 +161,10 @@ def weights_distribution_histogram(path_analysis_dir, path_info_dir, multi_predi
 
     else:
         for key in inf_weight_dict.keys():
-            print(f"the len for the bias is {inf_weight_dict[key][0][:, 0]}")
             for i in range(dict_param['num_predictors']):
                 flat_predictor_w.append(list(inf_weight_dict[key][0][:, 0, i]))
+            print(inf_weight_dict[key][0][:, 0, -1])
+            print(inf_weight_dict[key][0][:, 0])
             flat_bias_w.append(inf_weight_dict[key][0][:, 0, -1])
         flat_predictor_w = list(itertools.chain.from_iterable(flat_predictor_w))
         flat_bias_w = list(itertools.chain.from_iterable(flat_bias_w))
@@ -176,9 +188,8 @@ def weights_distribution_histogram(path_analysis_dir, path_info_dir, multi_predi
 
 # -------------------------------------------------------------------------------------------------------------------- #
 
-# TODO: generalize for different states
 def states_occupancies_histogram(path_analysis_dir, path_info_dir, dict_param=None, states_occupancies=None,
-                                 file_states_occup=None):
+                                 file_states_occup=None, multipredictor=None):
     """
     Plot the histogram of cumulative occupancy for each state
     """
@@ -190,29 +201,56 @@ def states_occupancies_histogram(path_analysis_dir, path_info_dir, dict_param=No
 
         with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
             dict_param = pickle.load(handle)
+    if multipredictor is None:
+        with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            plots_dir = dict_objects['path_plots_list'][0]
 
-    with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
-        dict_objects = pickle.load(handle)
-        plots_dir = dict_objects['path_plots_list'][0]
+    else:
+        with open(path_analysis_dir + 'dict_objects_multicov.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            plots_dir = dict_objects['path_plots_list'][0]
 
     with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
         dict_info = pickle.load(handle)
         animal_name = dict_info['animal_name']
 
-    dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
-    colors_states = colors_number(colors_number=3)
+    if multipredictor is None:
+        dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
+        colors_states = colors_number(colors_number=3)
 
-    fig = plt.figure(figsize=(2, 2.5), dpi=dpi, facecolor=fcc, edgecolor=ec)
-    for z, occ in enumerate(states_occupancies):
-        plt.bar(z, occ, width=0.8, color=colors_states[z])
-    plt.ylim((0, 1))
-    plt.xticks([0, 1, 2], ['1', '2', '3'], fontsize=10)
-    plt.yticks([0, 0.5, 1], ['0', '0.5', '1'], fontsize=10)
-    plt.xlabel('state', fontsize=15)
-    plt.ylabel('frac. occupancy', fontsize=15)
-    plt.tight_layout()
-    plt.savefig(plots_dir + f"states_occupancies_histogram_" + post_description_savefig, bbox_inches="tight", dpi=dpi)
-    plt.show()
+        fig = plt.figure(figsize=(2, 2.5), dpi=dpi, facecolor=fcc, edgecolor=ec)
+        for z, occ in enumerate(states_occupancies):
+            plt.bar(z, occ, width=0.8, color=colors_states[z])
+        plt.ylim((0, 1))
+        plt.xticks([0, 1, 2], ['1', '2', '3'], fontsize=10)
+        plt.yticks([0, 0.5, 1], ['0', '0.5', '1'], fontsize=10)
+        plt.xlabel('state', fontsize=15)
+        plt.ylabel('frac. occupancy', fontsize=15)
+        plt.tight_layout()
+        plt.savefig(plots_dir + f"states_occupancies_histogram_" + post_description_savefig, bbox_inches="tight",
+                    dpi=dpi)
+        plt.show()
+
+    else:
+        dpi, fcc, ec, post_description_savefig = plot_parameter(dict_param, animal_name)
+        colors_states = colors_number(colors_number=3)
+
+        fig = plt.figure(figsize=(2, 2.5), dpi=dpi, facecolor=fcc, edgecolor=ec)
+        for z, occ in enumerate(states_occupancies):
+            plt.bar(z, occ, width=0.8, color=colors_states[z])
+        plt.ylim((0, 1))
+        plt.xticks([0, 1, 2], ['1', '2', '3'], fontsize=10)
+        plt.yticks([0, 0.5, 1], ['0', '0.5', '1'], fontsize=10)
+        plt.xlabel('state', fontsize=15)
+        plt.ylabel('frac. occupancy', fontsize=15)
+        plt.tight_layout()
+        plt.savefig(plots_dir + f"states_occupancies_histogram_" + post_description_savefig, bbox_inches="tight",
+                    dpi=dpi)
+        plt.show()
+
+
+
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -222,7 +260,7 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
                                              posterior_probs_list=None,
                                              tot_masked_indices_list=None, T_list=None,
                                              dict_posterior=None,
-                                             instance_index=0, pred_index=0, multi_pred=None):
+                                             instance_index=0, pred_index=0, multipredictor=None):
     """
     Posterior probabilities plot comparison with a predictor.
     """
@@ -233,7 +271,14 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
             print(f"the keys of the posterior dict are {dict_posterior_objects.keys()}")
             posterior_probs_list = dict_posterior_objects['posterior_probs_list']
 
+    if multipredictor is None:
         with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            tot_masked_indices_list = dict_objects['tot_masked_indices_list']
+            T_list = dict_objects['T_list']
+
+    else:
+        with open(path_analysis_dir + 'dict_objects_multicov.pkl', 'rb') as handle:
             dict_objects = pickle.load(handle)
             tot_masked_indices_list = dict_objects['tot_masked_indices_list']
             T_list = dict_objects['T_list']
@@ -268,10 +313,12 @@ def posterior_prob_per_states_with_predictor(path_analysis_dir, path_info_dir, d
     print(normalized_check_cov)
     colors = colors_number(num_states+1)
 
-    if multi_pred is None:
+    if multipredictor is None:
         T = T_list[index_cov_check]
     else:
+        print(T_list)
         T=T_list
+
     plotrows = 4
     plotcolumns = 4
     time_interval = 4000

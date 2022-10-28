@@ -30,7 +30,7 @@ def inference_section(path_analysis_dir, path_info_dir, dict_param, glmhmms_ista
     for i in range(len(dict_param['list_states'])):
         fit_ll_states_list.append([])  # nested list each iteration over the states
         time_states_comp.append([])
-        print(f"number of states model is {dict_param['list_states'][i]}")
+        print(f"number of states model is {dict_param['list_states'][i]} states")
         for j in range(dict_param['num_predictors']):
             partial_clock = time.time()
             print(f"number predictor is {j}")
@@ -82,9 +82,9 @@ def inference_section_multi_predictor(path_analysis_dir, path_info_dir, dict_par
         glmhmms_ista = dict_objects["glmhmms_ista"]
         process_neur = dict_objects["process_neur"]
         inputs_list = dict_objects["inputs_list"]
-    print(inputs_list[0])
 
     for i in range(len(dict_param['list_states'])):
+        print(f"the model is {i} thus with {dict_param['list_states'][i]} states")
         partial_clock = time.time()
         fit_ll_states_list.append([])
         time_states_comp.append([])
@@ -122,7 +122,7 @@ def inference_section_multi_predictor(path_analysis_dir, path_info_dir, dict_par
 
 # TODO: check if it is better save the posterior in nested dict and not list
 def posterior_prob_process(path_info_dir, path_analysis_dir, dict_param=None, glmhmms_ista=None, process_neur=None,
-                           inputs_list=None, dict_processed_objects=None, multi_predictor=None):
+                           inputs_list=None, dict_processed_objects=None, multipredictor=None):
     """
     This function computes the posterior probability for each model, state and neuron.
     The objects are saved in a pickle file for further processing in case the inference was time-consuming.
@@ -143,16 +143,17 @@ def posterior_prob_process(path_info_dir, path_analysis_dir, dict_param=None, gl
 
     print(f"the input form is {inputs_list}")
 
-    if multi_predictor is None:
+    if multipredictor is None:
         for i in range(len(dict_param['list_states'])):
+            print(f"the model is {i} thus with {dict_param['list_states'][i]} states")
             posterior_probs_list.append([])  # structure for different states
             for k in range(dict_param['num_indep_neurons']):
                 posterior_probs_list[i].append([])  # structure for different neurons
                 for j in range(dict_param['num_predictors']):
+                    print(f"the predictor is {j}")
                     posterior_probs = [glmhmms_ista[i * ((dict_param['num_predictors']) * dict_param['num_indep_neurons']) +
                                                     (k * dict_param['num_predictors']) + j].
                                            expected_states(data=data, input=inpt)[0]
-                                       # way to get the posterior probability for each state
                                        for data, inpt
                                        in zip([process_neur[
                                                    i * ((dict_param['num_predictors']) * dict_param['num_indep_neurons']) +
@@ -170,13 +171,14 @@ def posterior_prob_process(path_info_dir, path_analysis_dir, dict_param=None, gl
 
     else:
         for i in range(len(dict_param['list_states'])):
+            print(f"the model is {i} thus with {dict_param['list_states'][i]} states")
             posterior_probs_list.append([])  # structure for different states
-            posterior_probs = [
-                glmhmms_ista[i].expected_states(data=data, input=inpt)[0]
-                # way to get the posterior probability for each state
+            posterior_probs = [glmhmms_ista[i].expected_states(data=data, input=inpt)[0]
                 for data, inpt
                 in zip([process_neur[0]], [inputs_list[0]])]
+            print(f"posterior prob is {posterior_probs}")
             posterior_probs_list[i].append(posterior_probs)
+            print(f"the posterior prob list is {posterior_probs_list}")
         comp_time_posterior = time.time() - startclock
         print(f"Total computation time for posterior probability is {comp_time_posterior}")
 
@@ -192,7 +194,7 @@ def posterior_prob_process(path_info_dir, path_analysis_dir, dict_param=None, gl
 
 # -------------------------------------------------------------------------------------------------------------------- #
 
-def states_occupancies_computation(path_analysis_dir, posterior_probs_list=None, dict_posterior=None):
+def states_occupancies_computation(path_analysis_dir, path_info_dir, posterior_probs_list=None, dict_posterior=None, multipredictor=None):
     """
     Obtain the state with maximum posterior probability at particular time point and generate the histogram
     Is possible to concatenate the obtained quantities across different neurons (this can be useful if you are assuming
@@ -203,10 +205,49 @@ def states_occupancies_computation(path_analysis_dir, posterior_probs_list=None,
         with open(path_analysis_dir + 'dict_posterior.pkl', 'rb') as handle:
             dict_posterior_loaded = pickle.load(handle)
         posterior_probs_list = dict_posterior_loaded["posterior_probs_list"]
-        print(f"state of occupancy is {posterior_probs_list}")
-    print(posterior_probs_list[1][0][0][0])
+
+
+    if multipredictor is None:
+        with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
+            dict_param = pickle.load(handle)
+        comp_istance = 0
+        print(posterior_probs_list[1][0][0][0])
+
+        # for each time point, selecting which is the max of those states value
+        state_max_posterior = np.argmax(posterior_probs_list[1][0][0][0], axis=1)
+
+        # now obtain state fractional occupancies:
+        _, states_occupancies = np.unique(state_max_posterior, return_counts=True)
+        states_occupancies = states_occupancies / np.sum(states_occupancies)
+
+        dict_states_occupancies = {"states_occupancies": states_occupancies}
+
+        data_file_name = 'dict_states_occupancies.pkl'
+        a_file = open(path_analysis_dir + data_file_name, "wb")
+        pickle.dump(dict_states_occupancies, a_file)
+        a_file.close()
+
+    else:
+        comp_istance = 1
+        print(posterior_probs_list[comp_istance][0][0])
+        # for each time point, selecting which is the max of those states value
+        state_max_posterior = np.argmax(posterior_probs_list[comp_istance][0][0], axis=1)
+
+        # now obtain state fractional occupancies:
+        _, states_occupancies = np.unique(state_max_posterior, return_counts=True)
+        states_occupancies = states_occupancies / np.sum(states_occupancies)
+
+        dict_states_occupancies = {"states_occupancies": states_occupancies}
+
+        data_file_name = 'dict_states_occupancies.pkl'
+        a_file = open(path_analysis_dir + data_file_name, "wb")
+        pickle.dump(dict_states_occupancies, a_file)
+        a_file.close()
+
+
+    print(posterior_probs_list[comp_istance][0][0])
     # for each time point, selecting which is the max of those states value
-    state_max_posterior = np.argmax(posterior_probs_list[1][0][0][0], axis=1)
+    state_max_posterior = np.argmax(posterior_probs_list[comp_istance][0][0], axis=1)
 
     # now obtain state fractional occupancies:
     _, states_occupancies = np.unique(state_max_posterior, return_counts=True)

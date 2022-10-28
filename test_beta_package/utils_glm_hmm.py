@@ -23,7 +23,7 @@ def factorial_perm(x):
 
 
 def dict_transformed_inferred_weights(path_analysis_dir, path_info_dir, glmhmms_ista=None, dict_param=None,
-                                      dict_processed_objects=None, multi_predictor=None):
+                                      dict_processed_objects=None, multipredictor=None):
     """
     Create a dictionary with the transformed weights
     """
@@ -36,16 +36,22 @@ def dict_transformed_inferred_weights(path_analysis_dir, path_info_dir, glmhmms_
         with open(path_info_dir + 'dictionary_parameters.pkl', 'rb') as handle:
             dict_param = pickle.load(handle)
 
-    with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
-        dict_objects = pickle.load(handle)
-        plots_dir = dict_objects['path_plots_list'][0]
+    if multipredictor is None:
+        with open(path_analysis_dir + 'dict_objects.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            plots_dir = dict_objects['path_plots_list'][0]
+
+    else:
+        with open(path_analysis_dir + 'dict_objects_multicov.pkl', 'rb') as handle:
+            dict_objects = pickle.load(handle)
+            plots_dir = dict_objects['path_plots_list'][0]
 
     with open(path_info_dir + 'dictionary_information.pkl', 'rb') as handle:
         dict_info = pickle.load(handle)
         animal_name = dict_info['animal_name']
 
 
-    if multi_predictor is None:
+    if multipredictor is None:
         inf_weight_dict = {}
         key_states = [str(x) + "_states" for x in dict_param['list_states']]
         for i in range(dict_param['num_states']):

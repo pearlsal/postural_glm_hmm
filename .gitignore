@@ -2,6 +2,7 @@
 /data/process_data/*
 /data/raw_data/*
 /results_folder/info_dir/*
+/results_folder/plots_dir/*
 /__pycache__/
 /.ipynb_checkpoints/*
 
